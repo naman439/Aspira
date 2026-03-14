@@ -1,6 +1,17 @@
 // =============================================
-// Aspira - Shared Auth & Utility Functions
+// FRONTEND CONFIGURATION (The "Frontend .env")
 // =============================================
+const API_CONFIG = {
+    // 🛠️ SET THIS TO YOUR RENDER URL FOR PRODUCTION
+    // 🏠 FOR LOCAL TESTING: Use "" (Empty String)
+    BACKEND_URL: 'https://aspira-2h9i.onrender.com'
+};
+
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? '' 
+    : API_CONFIG.BACKEND_URL;
+
+console.log(`%c[Aspira] API Targeting Backend: ${API_BASE_URL || "Local Server"}`, "color: #3b82f6; font-weight: bold;");
 
 // --- Toast Notification ---
 function showToast(message, type = 'info', duration = 3000) {
@@ -17,12 +28,6 @@ function showToast(message, type = 'info', duration = 3000) {
         setTimeout(() => toast.remove(), 300);
     }, duration);
 }
-
-// --- API Base URL ---
-// Using Render backend URL for production, localhost for development
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? '' 
-    : 'https://aspira-2h9i.onrender.com';
 
 // --- API Helper ---
 // Supports both (url, options) and (url, method, data) calling conventions
