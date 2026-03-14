@@ -4,8 +4,8 @@
   "description": "AI-powered interview preparation platform",
   "main": "server.js",
   "scripts": {
-    "start": "node --no-warnings server.js",
-    "dev": "nodemon --exec 'node --no-warnings' server.js"
+    "start": "node --no-warnings backend/server.js",
+    "dev": "nodemon --exec 'node --no-warnings' backend/server.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
