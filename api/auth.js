@@ -12,6 +12,7 @@ const router = express.Router();
 // ============================================================
 
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
+const FRONTEND_URL = process.env.FRONTEND_URL || APP_URL;
 
 // Helper: find or create an OAuth user
 function findOrCreateOAuthUser(provider, providerId, email, name) {
@@ -129,8 +130,8 @@ router.get('/google/callback',
 
             const userObj = setSession(req, dbUser);
             // New user (no industry set) → onboarding, else dashboard
-            const redirect = dbUser.industry ? '/dashboard' : '/onboarding';
-            res.redirect(redirect);
+            const redirectPath = dbUser.industry ? '/dashboard' : '/onboarding';
+            res.redirect(`${FRONTEND_URL}${redirectPath}`);
         })(req, res, next);
     }
 );
@@ -154,8 +155,8 @@ router.get('/github/callback',
             if (!dbUser) return res.redirect('/sign-in?error=github_failed');
 
             const userObj = setSession(req, dbUser);
-            const redirect = dbUser.industry ? '/dashboard' : '/onboarding';
-            res.redirect(redirect);
+            const redirectPath = dbUser.industry ? '/dashboard' : '/onboarding';
+            res.redirect(`${FRONTEND_URL}${redirectPath}`);
         })(req, res, next);
     }
 );

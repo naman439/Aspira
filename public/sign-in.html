@@ -72,6 +72,10 @@
         (async () => {
             const user = await checkAuthNoRedirect();
             if (user) window.location.href = '/dashboard';
+
+            // Fixed: Set absolute URLs for OAuth buttons to target Render backend
+            document.getElementById('google-btn').href = API_BASE_URL + '/api/auth/google';
+            document.getElementById('github-btn').href = API_BASE_URL + '/api/auth/github';
         })();
 
         // Show OAuth error messages from callback redirect
