@@ -29,6 +29,21 @@ router.post('/', requireAuth, (req, res) => {
     res.json({ id });
 });
 
+// GET /api/resume/ats-history - Get past ATS checks
+router.get('/ats-history', requireAuth, (req, res) => {
+    const db = getDb();
+    const reports = db.prepare('SELECT id, resume_name, job_role, score, created_at FROM ats_reports WHERE user_id = ? ORDER BY created_at DESC').all(req.session.user.id);
+    res.json({ reports });
+});
+
+// GET /api/resume/ats-report/:id - Get a specific report
+router.get('/ats-report/:id', requireAuth, (req, res) => {
+    const db = getDb();
+    const report = db.prepare('SELECT * FROM ats_reports WHERE id = ? AND user_id = ?').get(req.params.id, req.session.user.id);
+    if (!report) return res.status(404).json({ error: 'Report not found' });
+    res.json(JSON.parse(report.analysis_json));
+});
+
 // GET /api/resume/:id
 router.get('/:id', requireAuth, (req, res) => {
     const db = getDb();
@@ -144,19 +159,5 @@ Return ONLY the JSON. No markdown backticks.`;
     }
 });
 
-// GET /api/resume/ats-history - Get past ATS checks
-router.get('/ats-history', requireAuth, (req, res) => {
-    const db = getDb();
-    const reports = db.prepare('SELECT id, resume_name, job_role, score, created_at FROM ats_reports WHERE user_id = ? ORDER BY created_at DESC').all(req.session.user.id);
-    res.json({ reports });
-});
-
-// GET /api/resume/ats-report/:id - Get a specific report
-router.get('/ats-report/:id', requireAuth, (req, res) => {
-    const db = getDb();
-    const report = db.prepare('SELECT * FROM ats_reports WHERE id = ? AND user_id = ?').get(req.params.id, req.session.user.id);
-    if (!report) return res.status(404).json({ error: 'Report not found' });
-    res.json(JSON.parse(report.analysis_json));
-});
 
 module.exports = router;
