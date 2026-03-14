@@ -35,6 +35,7 @@ function findOrCreateOAuthUser(provider, providerId, email, name) {
     }
 
     // 3. Create brand-new user
+    const id = uuidv4();
     db.prepare(
         "INSERT INTO users (id, name, email, provider, provider_id) VALUES (?, ?, ?, ?, ?)"
     ).run(id, name, email || null, provider, providerId);
