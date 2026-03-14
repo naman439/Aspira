@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Interview – Aspira</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .interview-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+
+        .status-dot.active {
+            background: #22c55e;
+            box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.5
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-pattern"></div>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <div style="width:32px;height:32px" id="nav-logo"></div>
+            Aspira
+        </div>
+        <div class="navbar-actions">
+            <a href="/dashboard" class="btn btn-ghost btn-sm">← Dashboard</a>
+            <span class="nav-user-name" id="nav-name"></span>
+            <div class="nav-avatar" id="nav-avatar"></div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="interview-container">
+            <!-- Setup phase -->
+            <div id="setup-phase">
+                <div class="page-header" style="text-align:left;padding-top:2rem;">
+                    <h1>AI Mock Interview</h1>
+                    <p>Configure your interview session and practice with our AI voice interviewer</p>
+                </div>
+
+                <div class="interview-card">
+                    <h3 class="mb-6">Interview Setup</h3>
+                    <div class="grid-2" style="gap:1.5rem;">
+                        <div class="form-group">
+                            <label for="job-role">Job Role *</label>
+                            <input type="text" id="job-role" placeholder="e.g. Frontend Developer, Data Scientist"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label for="level">Experience Level</label>
+                            <select id="level">
+                                <option value="junior">Junior (0–2 years)</option>
+                                <option value="mid" selected>Mid-level (2–5 years)</option>
+                                <option value="senior">Senior (5+ years)</option>
+                                <option value="lead">Lead / Principal</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="interview-type">Interview Type</label>
+                            <select id="interview-type">
+                                <option value="voice">AI Voice</option>
+                                <option value="browser-voice" selected>Unlimited Free Voice (Browser)</option>
+                                <option value="technical">Technical Only</option>
+                                <option value="behavioral">Behavioral Only</option>
+                                <option value="mixed">Mixed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tech-stack">Tech Stack (optional)</label>
+                            <input type="text" id="tech-stack" placeholder="e.g. React, Node.js, Python">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-lg mt-6 w-full" id="start-btn">
+                        🎙️ Start Interview
+                    </button>
+                </div>
+            </div>
+
+            <!-- Interview phase -->
+            <div id="interview-phase" class="hidden">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+                    <div>
+                        <h2 id="interview-role-title">Interview Session</h2>
+                        <p id="interview-subtitle">AI Voice Interviewer is ready</p>
+                    </div>
+                    <div class="interview-status" style="background:var(--bg-card);border:1px solid var(--border);">
+                        <div class="status-dot" id="status-dot"></div>
+                        <span id="status-text">Ready</span>
+                    </div>
+                </div>
+
+                <div class="interview-card">
+                    <!-- Agent visual -->
+                    <div class="agent-visual">
+                        <div class="avatar-wrapper">
+                            <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:2rem;border:3px solid var(--border);"
+                                id="ai-avatar-div" class="avatar">🤖</div>
+                            <span class="avatar-label">AI Interviewer</span>
+                        </div>
+
+                        <div class="voice-wave" id="ai-wave">
+                            <span></span><span></span><span></span><span></span><span></span>
+                        </div>
+
+                        <div class="avatar-wrapper">
+                            <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple));display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;"
+                                id="user-avatar-div" class="avatar"></div>
+                            <span class="avatar-label">You</span>
+                        </div>
+                    </div>
+
+                    <!-- Live transcript -->
+                    <div class="transcript-area" id="transcript">
+                        <span style="color:var(--text-muted);font-style:italic;">Transcript will appear here during the
+                            interview...</span>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="call-controls">
+                        <button class="btn-call btn-call-start" id="call-btn" onclick="toggleCall()"
+                            title="Start Interview">📞</button>
+                        <button class="btn btn-danger" onclick="endInterview()">End Interview</button>
+                    </div>
+
+                    <p style="text-align:center;font-size:0.8rem;color:var(--text-muted);margin-top:1rem;"
+                        id="call-hint">
+                        Click the phone button to start the AI voice interview
+                    </p>
+                </div>
+
+                <!-- Questions preview -->
+                <div class="interview-card mt-4" id="questions-card">
+                    <h4 class="mb-4">Interview Questions</h4>
+                    <div id="questions-list" style="display:flex;flex-direction:column;gap:0.75rem;"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/shared.js"></script>
+    <script>
+        document.getElementById('nav-logo').innerHTML = LOGO_SVG;
+        let interviewId = null;
+        let callActive = false;
+        let transcript = '';
+        let vapiInstance = null;
+        let selectedMode = 'browser-voice';
+
+        // Browser Speech API Vars
+        let recognition = null;
+        const synth = window.speechSynthesis;
+
+        (async () => {
+            const user = await checkAuth('/sign-in');
+            if (user) {
+                document.getElementById('nav-name').textContent = user.name.split(' ')[0];
+                document.getElementById('nav-avatar').textContent = user.name.charAt(0).toUpperCase();
+                document.getElementById('user-avatar-div').textContent = user.name.charAt(0).toUpperCase();
+            }
+        })();
+
+        document.getElementById('start-btn').addEventListener('click', async () => {
+            const role = document.getElementById('job-role').value.trim();
+            if (!role) return showToast('Please enter a job role', 'error');
+
+            const btn = document.getElementById('start-btn');
+            setLoading(btn, true);
+
+            try {
+                const data = await api('/api/interview/generate', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        role,
+                        level: document.getElementById('level').value,
+                        type: document.getElementById('interview-type').value,
+                        techStack: document.getElementById('tech-stack').value
+                    })
+                });
+
+                interviewId = data.interviewId;
+                selectedMode = document.getElementById('interview-type').value;
+
+                // Show interview phase
+                document.getElementById('setup-phase').classList.add('hidden');
+                document.getElementById('interview-phase').classList.remove('hidden');
+                document.getElementById('interview-role-title').textContent = role + ' Interview';
+                document.getElementById('interview-subtitle').textContent = selectedMode === 'browser-voice' ? 'Using Browser Voice (Unlimited Free)' : 'AI Voice Interviewer is ready';
+
+                // Render questions
+                const ql = document.getElementById('questions-list');
+                data.questions.forEach((q, i) => {
+                    const div = document.createElement('div');
+                    div.style.cssText = 'padding:12px;background:rgba(0,0,0,0.2);border-radius:8px;border:1px solid var(--border);';
+                    div.innerHTML = `<div style="display:flex;gap:8px;align-items:flex-start">
+            <span style="background:rgba(59,130,246,0.15);color:#60a5fa;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:600;flex-shrink:0">Q${i + 1}</span>
+            <span style="font-size:0.875rem;">${q.question}</span>
+          </div>`;
+                    ql.appendChild(div);
+                });
+
+                // Try to load Vapi if public key is set
+                loadVapi(role, data.questions);
+
+            } catch (err) {
+                showToast(err.message, 'error');
+                setLoading(btn, false, '🎙️ Start Interview');
+            }
+        });
+
+        function loadVapi(role, questions) {
+            // Vapi will only work if VAPI_PUBLIC_KEY is configured
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/vapi.js';
+            script.onload = () => {
+                showToast('Voice agent ready! Click the phone button to start.', 'info');
+                window._vapiQuestions = questions;
+                window._vapiRole = role;
+            };
+            document.head.appendChild(script);
+        }
+
+        function toggleCall() {
+            if (!callActive) {
+                startCall();
+            } else {
+                endCall();
+            }
+        }
+
+        function startCall() {
+            callActive = true;
+            document.getElementById('call-btn').innerHTML = '⏸️';
+            document.getElementById('call-btn').className = 'btn-call btn-call-end';
+            document.getElementById('status-dot').classList.add('active');
+            document.getElementById('status-text').textContent = 'In Progress';
+            document.getElementById('call-hint').textContent = 'Interview in progress — speak clearly into your microphone';
+            document.getElementById('ai-wave').classList.add('active');
+
+            const firstMsg = `Hello! I'm your AI interviewer for the ${document.getElementById('interview-role-title').textContent}. I'll be asking you ${window._vapiQuestions ? window._vapiQuestions.length : 5} questions. Let's begin with the first one. Could you start by telling me about yourself and your experience?`;
+
+            appendTranscript('AI Interviewer', firstMsg);
+
+            if (selectedMode === 'browser-voice') {
+                startBrowserVoice(firstMsg);
+            } else if (window.Vapi && typeof window.Vapi === 'function') {
+                try {
+                    vapiInstance = new window.Vapi(window.VAPI_PUBLIC_KEY || '');
+                    vapiInstance.on('message', (msg) => {
+                        if (msg.type === 'transcript') {
+                            appendTranscript(msg.role === 'assistant' ? 'AI Interviewer' : 'You', msg.transcript);
+                        }
+                    });
+                    vapiInstance.start({
+                        name: 'Aspira AI Interviewer',
+                        instructions: `You are conducting a ${document.getElementById('interview-role-title').textContent}. Ask the following questions one by one: ${window._vapiQuestions?.map(q => q.question).join('; ')}`
+                    });
+                } catch (e) {
+                    console.log('Vapi not configured, using demo mode');
+                }
+            }
+        }
+
+        function endCall() {
+            callActive = false;
+            document.getElementById('call-btn').innerHTML = '📞';
+            document.getElementById('call-btn').className = 'btn-call btn-call-start';
+            document.getElementById('status-dot').classList.remove('active');
+            document.getElementById('status-text').textContent = 'Paused';
+            document.getElementById('ai-wave').classList.remove('active');
+
+            if (selectedMode === 'browser-voice') {
+                if (recognition) recognition.stop();
+                if (synth) synth.cancel();
+            }
+
+            if (vapiInstance) { try { vapiInstance.stop(); } catch (e) { } }
+        }
+
+        // ==========================================
+        // BROWSER VOICE (UNLIMITED FREE)
+        // ==========================================
+        function startBrowserVoice(msg) {
+            // Speak first message
+            speakText(msg, () => {
+                // Start listening after speaking
+                initRecognition();
+            });
+        }
+
+        function speakText(text, onEnd) {
+            if (!synth) return onEnd();
+            synth.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.onend = onEnd;
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            synth.speak(utterance);
+        }
+
+        function initRecognition() {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRec) {
+                showToast('Browser Speech Recognition not supported in this browser.', 'error');
+                return;
+            }
+
+            recognition = new SpeechRec();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = (event) => {
+                const text = event.results[event.results.length - 1][0].transcript;
+                appendTranscript('You', text);
+
+                // Simulation: Auto-trigger next question after 2 seconds
+                // In a real app, you'd send this to an LLM to generate a follow-up
+                setTimeout(() => {
+                    if (!callActive) return;
+                    const nextQ = getNextQuestion();
+                    if (nextQ) {
+                        appendTranscript('AI Interviewer', nextQ);
+                        speakText(nextQ, () => {
+                            // Keep listening
+                        });
+                    } else {
+                        appendTranscript('AI Interviewer', "Thank you for your answers. You can now click 'End Interview' to see your feedback.");
+                        speakText("Thank you for your answers. You can now click 'End Interview' to see your feedback.");
+                        recognition.stop();
+                    }
+                }, 1500);
+            };
+
+            recognition.onerror = (err) => {
+                console.error('Speech Rec Error', err);
+                if (callActive && err.error !== 'no-speech') {
+                    recognition.stop();
+                    setTimeout(() => recognition.start(), 1000);
+                }
+            };
+
+            recognition.start();
+        }
+
+        let currentQIndex = 0;
+        function getNextQuestion() {
+            if (!window._vapiQuestions || currentQIndex >= window._vapiQuestions.length) return null;
+            return window._vapiQuestions[currentQIndex++].question;
+        }
+
+        async function endInterview() {
+            if (!interviewId) return window.location.href = '/dashboard';
+            if (!confirm('End the interview and get your feedback?')) return;
+
+            endCall();
+            const transcriptText = document.getElementById('transcript').innerText;
+
+            try {
+                const data = await api('/api/interview/feedback', {
+                    method: 'POST',
+                    body: JSON.stringify({ interviewId, transcript: transcriptText })
+                });
+                sessionStorage.setItem('feedback', JSON.stringify(data.feedback));
+                sessionStorage.setItem('interviewId', interviewId);
+                window.location.href = '/feedback';
+            } catch (err) {
+                showToast(err.message, 'error');
+                // Redirect anyway
+                window.location.href = '/feedback';
+            }
+        }
+
+        function appendTranscript(speaker, text) {
+            const area = document.getElementById('transcript');
+            if (area.querySelector('span')) area.innerHTML = '';
+            area.innerHTML += `<div style="margin-bottom:8px;"><strong style="color:${speaker === 'You' ? '#60a5fa' : '#a78bfa'}">${speaker}:</strong> <span style="color:var(--text-secondary)">${text}</span></div>`;
+            area.scrollTop = area.scrollHeight;
+            transcript += `${speaker}: ${text}\n`;
+        }
+    </script>
+</body>
+
+</html>

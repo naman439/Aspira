@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics – Aspira</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <div class="bg-pattern"></div>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <div style="width:32px;height:32px" id="nav-logo"></div>Aspira
+        </div>
+        <div class="navbar-actions">
+            <a href="/dashboard" class="btn btn-ghost btn-sm">← Dashboard</a>
+            <span class="nav-user-name" id="nav-name"></span>
+            <div class="nav-avatar" id="nav-avatar"></div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container" style="padding:2rem 1.5rem;">
+            <div style="margin-bottom:2rem;">
+                <h1>Performance Analytics</h1>
+                <p>Track your interview progress and skill development over time</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Interviews</div>
+                    <div class="stat-value" id="stat-interviews">–</div>
+                    <div class="stat-sub">Completed sessions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Interview Score</div>
+                    <div class="stat-value" id="stat-avg">–</div>
+                    <div class="stat-sub">Out of 100</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Quizzes</div>
+                    <div class="stat-value" id="stat-quizzes">–</div>
+                    <div class="stat-sub">MCQ assessments</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Quiz Score</div>
+                    <div class="stat-value" id="stat-quiz-avg">–</div>
+                    <div class="stat-sub">Percentage</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+                <div class="chart-section" style="margin-top: 0">
+                    <h3>Interview Performance Trend</h3>
+                    <div style="height:280px;position:relative">
+                        <canvas id="performance-chart"></canvas>
+                    </div>
+                    <p id="chart-empty" class="text-center text-muted" style="display:none;padding:3rem 0">No interview
+                        data yet. <a href="/interview" style="color:var(--accent-blue)">Start your first interview →</a>
+                    </p>
+                </div>
+                <div class="chart-section" style="margin-top: 0" id="skills-section">
+                    <h3>Skill Distribution</h3>
+                    <div style="height:280px;position:relative">
+                        <canvas id="skills-radar"></canvas>
+                    </div>
+                    <p id="skills-empty" class="text-center text-muted" style="display:none;padding:3rem 0">Complete an interview to see your skill distribution.</p>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="recent-grid">
+                <div>
+                    <h3 class="mb-4">Recent Interviews</h3>
+                    <div id="recent-interviews" style="display:flex;flex-direction:column;gap:8px;"></div>
+                </div>
+                <div>
+                    <h3 class="mb-4">Recent Quizzes</h3>
+                    <div id="recent-quizzes" style="display:flex;flex-direction:column;gap:8px;"></div>
+                </div>
+            </div>
+
+            <!-- Quick Action -->
+            <div style="display:flex;gap:1rem;margin-top:2rem;">
+                <a href="/interview" class="btn btn-primary">+ New Interview</a>
+                <a href="/quiz" class="btn btn-secondary">+ New Quiz</a>
+                <a href="/ai-chat" class="btn btn-ghost">💬 AI Career Coach</a>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/shared.js"></script>
+    <script>
+        document.getElementById('nav-logo').innerHTML = LOGO_SVG;
+        let chart;
+
+        (async () => {
+            const user = await checkAuth('/sign-in');
+            if (user) {
+                document.getElementById('nav-name').textContent = user.name.split(' ')[0];
+                document.getElementById('nav-avatar').textContent = user.name.charAt(0).toUpperCase();
+            }
+            await loadStats();
+        })();
+
+        async function loadStats() {
+            try {
+                const data = await api('/api/dashboard/stats');
+
+                document.getElementById('stat-interviews').textContent = data.stats.totalInterviews;
+                document.getElementById('stat-avg').textContent = data.stats.avgInterviewScore || '—';
+                document.getElementById('stat-quizzes').textContent = data.stats.totalQuizzes;
+                document.getElementById('stat-quiz-avg').textContent = data.stats.avgQuizScore ? data.stats.avgQuizScore + '%' : '—';
+
+                // Charts
+                if (data.chartData && data.chartData.length > 0) {
+                    renderChart(data.chartData);
+                    renderRadarChart(data.stats.skills);
+                } else {
+                    document.getElementById('performance-chart').parentElement.parentElement.style.display = 'none';
+                    document.getElementById('chart-empty').style.display = 'block';
+                    // Also hide radar canvas and show skills empty state
+                    document.getElementById('skills-radar').style.display = 'none';
+                    document.getElementById('skills-empty').style.display = 'block';
+                }
+
+                // Recent interviews
+                const ri = document.getElementById('recent-interviews');
+                if (data.recentInterviews.length === 0) {
+                    ri.innerHTML = '<p class="text-muted text-sm">No interviews yet. <a href="/interview" style="color:var(--accent-blue)">Start one →</a></p>';
+                } else {
+                    data.recentInterviews.forEach(i => {
+                        ri.innerHTML += `<div class="recent-item" style="cursor:pointer;" onclick="window.location.href='/interview/details/${i.id}?id=${i.id}'">
+              <div class="recent-item-info">
+                <h4>${i.role}</h4>
+                <p>${i.level} · ${formatDate(i.created_at)}</p>
+              </div>
+              <div class="recent-score">${i.score || '–'}</div>
+            </div>`;
+                    });
+                }
+
+                // Recent quizzes
+                const rq = document.getElementById('recent-quizzes');
+                if (data.recentQuizzes.length === 0) {
+                    rq.innerHTML = '<p class="text-muted text-sm">No quizzes yet. <a href="/quiz" style="color:var(--accent-blue)">Try one →</a></p>';
+                } else {
+                    data.recentQuizzes.forEach(q => {
+                        const pct = q.score !== null ? Math.round((q.score / q.total) * 100) + '%' : '–';
+                        rq.innerHTML += `<div class="recent-item">
+              <div class="recent-item-info">
+                <h4>${q.role}</h4>
+                <p>${q.skill || 'General'} · ${formatDate(q.created_at)}</p>
+              </div>
+              <div class="recent-score">${pct}</div>
+            </div>`;
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('performance-chart').getContext('2d');
+            if (chart) chart.destroy();
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.role.split(' ')[0]),
+                    datasets: [{
+                        label: 'Interview Score',
+                        data: data.map(d => d.score),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59,130,246,0.1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#3b82f6',
+                        pointRadius: 5,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#a1a1aa' } } },
+                    scales: {
+                        x: { ticks: { color: '#71717a' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { min: 0, max: 100, ticks: { color: '#71717a' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
+        }
+
+        function renderRadarChart(skills) {
+            const ctx = document.getElementById('skills-radar').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Soft Skills', 'Technical Skills', 'Confidence', 'Clarity', 'Accuracy'],
+                    datasets: [{
+                        label: 'Avg Score',
+                        data: [skills.soft, skills.tech, Math.min(100, skills.soft + 5), Math.max(0, skills.soft - 5), Math.min(100, skills.tech + 3)],
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139,92,246,0.2)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#8b5cf6'
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            min: 0, max: 100,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            angleLines: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { display: false },
+                            pointLabels: { color: '#a1a1aa', font: { size: 10 } }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

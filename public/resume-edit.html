@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Editor – Aspira</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        .main-content {
+            padding-top: 60px;
+        }
+
+        .editor-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            height: calc(100vh - 60px);
+        }
+
+        .editor-left {
+            padding: 1.5rem;
+            overflow-y: auto;
+            border-right: 1px solid var(--border);
+        }
+
+        .editor-right {
+            background: #f0f0f0;
+            overflow-y: auto;
+        }
+
+        .resume-doc {
+            padding: 2.5rem;
+            font-family: Georgia, serif;
+            color: #111;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .resume-doc h1 {
+            font-size: 22px;
+            color: #1a1a2e;
+            border-bottom: 2px solid #1a1a2e;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+        }
+
+        .resume-doc .contact {
+            color: #444;
+            font-size: 11px;
+            margin-bottom: 12px;
+        }
+
+        .resume-doc .section {
+            margin-bottom: 14px;
+        }
+
+        .resume-doc .section-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #1a1a2e;
+            font-weight: bold;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 2px;
+            margin-bottom: 6px;
+        }
+
+        .resume-doc .exp-item {
+            margin-bottom: 8px;
+        }
+
+        .resume-doc .exp-header {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .resume-doc .exp-title {
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .resume-doc .exp-company {
+            font-style: italic;
+            color: #555;
+        }
+
+        .resume-doc .exp-date {
+            color: #555;
+            font-size: 11px;
+        }
+
+        .resume-doc ul {
+            padding-left: 16px;
+            margin: 3px 0;
+        }
+
+        .resume-doc ul li {
+            margin-bottom: 2px;
+        }
+
+        .resume-doc .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .resume-doc .skill-tag {
+            background: #e8e8f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .add-btn {
+            font-size: 0.8rem;
+        }
+
+        .entry-card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .entry-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .ai-btn {
+            font-size: 0.75rem;
+        }
+
+        @media(max-width:900px) {
+            .editor-layout {
+                grid-template-columns: 1fr
+            }
+
+            .editor-right {
+                display: none
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div style="background:var(--bg-primary)"></div>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <div style="width:32px;height:32px" id="nav-logo"></div>Resume Editor
+        </div>
+        <div class="navbar-actions">
+            <a href="/resume" class="btn btn-ghost btn-sm">← All Resumes</a>
+            <select id="resume-layout" class="btn btn-secondary btn-sm" onchange="updatePreview()"
+                style="background:var(--bg-input);padding-right:1.5rem">
+                <option value="minimalist">Minimalist</option>
+                <option value="executive">Executive</option>
+                <option value="modern">Modern</option>
+                <option value="creative">Creative</option>
+                <option value="academic">Academic</option>
+            </select>
+            <select id="resume-theme" class="btn btn-secondary btn-sm" onchange="updatePreview()"
+                style="background:var(--bg-input);padding-right:1.5rem">
+                <option value="classic-black">Classic Black</option>
+                <option value="midnight-blue">Midnight Blue</option>
+                <option value="forest-green">Forest Green</option>
+                <option value="slate-grey">Slate Grey</option>
+                <option value="wine-red">Wine Red</option>
+                <option value="modern-teal">Modern Teal</option>
+                <option value="royal-purple">Royal Purple</option>
+                <option value="soft-rose">Soft Rose</option>
+                <option value="ocean-breeze">Ocean Breeze</option>
+                <option value="typography-gold">Typography Gold</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" onclick="printResume()">🖨️ PDF</button>
+            <button class="btn btn-primary btn-sm" onclick="saveResume()">Save</button>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="editor-layout">
+            <!-- LEFT: Form panels -->
+            <div class="editor-left">
+                <div class="resume-section-tabs">
+                    <button class="tab-btn active" onclick="switchTab(this,'personal')">👤 Personal</button>
+                    <button class="tab-btn" onclick="switchTab(this,'summary')">📝 Summary</button>
+                    <button class="tab-btn" onclick="switchTab(this,'experience')">💼 Experience</button>
+                    <button class="tab-btn" onclick="switchTab(this,'education')">🎓 Education</button>
+                    <button class="tab-btn" onclick="switchTab(this,'skills')">⚡ Skills</button>
+                    <div style="margin-left: auto; display: flex; gap: 5px;">
+                        <button class="btn btn-secondary btn-sm" onclick="setBoilerplate('student')" title="Fill Student Template">🎓 Student</button>
+                        <button class="btn btn-secondary btn-sm" onclick="setBoilerplate('pro')" title="Fill Professional Template">💼 Pro</button>
+                    </div>
+                </div>
+
+                <!-- Personal Details -->
+                <div class="tab-panel active" id="tab-personal">
+                    <div class="form-group mb-4"><label>Full Name</label><input type="text" id="pd-name"
+                            placeholder="John Doe" oninput="updatePreview()"></div>
+                    <div class="grid-2">
+                        <div class="form-group"><label>Email</label><input type="email" id="pd-email"
+                                placeholder="john@email.com" oninput="updatePreview()"></div>
+                        <div class="form-group"><label>Phone</label><input type="text" id="pd-phone"
+                                placeholder="+1 (555) 000-0000" oninput="updatePreview()"></div>
+                        <div class="form-group"><label>Location</label><input type="text" id="pd-location"
+                                placeholder="San Francisco, CA" oninput="updatePreview()"></div>
+                        <div class="form-group"><label>LinkedIn</label><input type="text" id="pd-linkedin"
+                                placeholder="linkedin.com/in/..." oninput="updatePreview()"></div>
+                    </div>
+                    <div class="form-group mt-3"><label>Portfolio/Website</label><input type="text" id="pd-website"
+                            placeholder="portfolio.com" oninput="updatePreview()"></div>
+                </div>
+
+                <!-- Summary -->
+                <div class="tab-panel" id="tab-summary">
+                    <div class="form-group">
+                        <div class="section-header"><label>Professional Summary</label><button
+                                class="btn btn-secondary btn-sm ai-btn"
+                                onclick="aiSuggest('summary','pd-summary','summary')">✨ AI Improve</button></div>
+                        <textarea id="pd-summary" placeholder="Write a compelling professional summary..." rows="5"
+                            oninput="updatePreview()"></textarea>
+                    </div>
+                </div>
+
+                <!-- Experience -->
+                <div class="tab-panel" id="tab-experience">
+                    <div class="section-header">
+                        <h4>Work Experience</h4><button class="btn btn-primary btn-sm add-btn"
+                            onclick="addExperience()">+ Add</button>
+                    </div>
+                    <div id="experience-list"></div>
+                </div>
+
+                <!-- Education -->
+                <div class="tab-panel" id="tab-education">
+                    <div class="section-header">
+                        <h4>Education</h4><button class="btn btn-primary btn-sm add-btn" onclick="addEducation()">+
+                            Add</button>
+                    </div>
+                    <div id="education-list"></div>
+                </div>
+
+                <!-- Skills -->
+                <div class="tab-panel" id="tab-skills">
+                    <div class="form-group">
+                        <label>Skills (comma-separated)</label>
+                        <textarea id="skills-input" placeholder="JavaScript, React, Node.js, Python, SQL..." rows="3"
+                            oninput="updatePreview()"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Live preview -->
+            <div class="editor-right" style="padding: 2rem;">
+                <div id="resume-preview-wrapper" class="resume-preview-container">
+                    <div id="resume-preview">
+                        <div style="text-align:center;color:#999;padding:3rem;">Your resume preview...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/shared.js"></script>
+    <script>
+        document.getElementById('nav-logo').innerHTML = LOGO_SVG;
+        let experiences = [], education = [], resumeTitle = '';
+        let resumeId; // Declare resumeId here to make it accessible globally or within the script scope
+
+        (async () => {
+            const user = await checkAuth('/sign-in');
+            buildNav(user);
+            const urlParams = new URLSearchParams(window.location.search);
+            resumeId = urlParams.get('id'); // Assign to the declared resumeId
+            if (resumeId) await loadResume();
+        })();
+
+        async function loadResume() {
+            try {
+                const data = await api(`/api/resume/${resumeId}`);
+                const r = data.resume;
+                resumeTitle = r.title;
+                if (r.personal_details) {
+                    document.getElementById('pd-name').value = r.personal_details.name || '';
+                    document.getElementById('pd-email').value = r.personal_details.email || '';
+                    document.getElementById('pd-phone').value = r.personal_details.phone || '';
+                    document.getElementById('pd-location').value = r.personal_details.location || '';
+                    document.getElementById('pd-linkedin').value = r.personal_details.linkedin || '';
+                    document.getElementById('pd-website').value = r.personal_details.website || '';
+                }
+                document.getElementById('pd-summary').value = r.summary || '';
+                experiences = r.experiences || [];
+                education = r.education || [];
+                document.getElementById('skills-input').value = (r.skills || []).join(', ');
+                document.getElementById('resume-layout').value = r.template || 'minimalist';
+                document.getElementById('resume-theme').value = r.theme || 'classic-black';
+                renderExperiences();
+                renderEducation();
+                updatePreview();
+            } catch (e) { showToast('Failed to load resume', 'error'); }
+        }
+
+        function switchTab(btn, tabId) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+
+        function addExperience() {
+            experiences.push({ title: '', company: '', location: '', start: '', end: '', current: false, bullets: '' });
+            renderExperiences();
+        }
+
+        function renderExperiences() {
+            const list = document.getElementById('experience-list');
+            list.innerHTML = experiences.map((exp, i) => `
+        <div class="entry-card">
+          <div class="entry-card-header"><span class="text-sm font-bold">${exp.title || 'New Position'}</span>
+            <button class="btn btn-danger btn-sm" onclick="removeItem('exp',${i})">×</button></div>
+          <div class="grid-2">
+            <div class="form-group"><label>Job Title</label><input value="${exp.title || ''}" oninput="experiences[${i}].title=this.value;updatePreview()" placeholder="Software Engineer"></div>
+            <div class="form-group"><label>Company</label><input value="${exp.company || ''}" oninput="experiences[${i}].company=this.value;updatePreview()" placeholder="Acme Corp"></div>
+            <div class="form-group"><label>Start Date</label><input value="${exp.start || ''}" oninput="experiences[${i}].start=this.value;updatePreview()" placeholder="Jan 2022"></div>
+            <div class="form-group"><label>End Date</label><input value="${exp.end || ''}" oninput="experiences[${i}].end=this.value;updatePreview()" placeholder="Present"></div>
+          </div>
+          <div class="form-group mt-2">
+            <div class="section-header" style="margin-bottom:4px"><label>Responsibilities</label>
+              <button class="btn btn-secondary btn-sm ai-btn" onclick="aiSuggest('experience_${i}','exp-bullets-${i}','experience')">✨ AI Improve</button></div>
+            <textarea id="exp-bullets-${i}" placeholder="• Led development of..." rows="3" oninput="experiences[${i}].bullets=this.value;updatePreview()">${exp.bullets || ''}</textarea>
+          </div>
+        </div>`).join('');
+        }
+
+        function addEducation() {
+            education.push({ degree: '', school: '', year: '', gpa: '' });
+            renderEducation();
+        }
+
+        function renderEducation() {
+            const list = document.getElementById('education-list');
+            list.innerHTML = education.map((edu, i) => `
+        <div class="entry-card">
+          <div class="entry-card-header"><span class="text-sm font-bold">${edu.degree || 'New Degree'}</span>
+            <button class="btn btn-danger btn-sm" onclick="removeItem('edu',${i})">×</button></div>
+          <div class="grid-2">
+            <div class="form-group"><label>Degree</label><input value="${edu.degree || ''}" oninput="education[${i}].degree=this.value;updatePreview()" placeholder="B.S. Computer Science"></div>
+            <div class="form-group"><label>School</label><input value="${edu.school || ''}" oninput="education[${i}].school=this.value;updatePreview()" placeholder="MIT"></div>
+            <div class="form-group"><label>Graduation Year</label><input value="${edu.year || ''}" oninput="education[${i}].year=this.value;updatePreview()" placeholder="2022"></div>
+            <div class="form-group"><label>GPA (optional)</label><input value="${edu.gpa || ''}" oninput="education[${i}].gpa=this.value;updatePreview()" placeholder="3.8"></div>
+          </div>
+        </div>`).join('');
+        }
+
+        function removeItem(type, i) {
+            if (type === 'exp') experiences.splice(i, 1);
+            else education.splice(i, 1);
+            type === 'exp' ? renderExperiences() : renderEducation();
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const name = document.getElementById('pd-name').value;
+            const email = document.getElementById('pd-email').value;
+            const phone = document.getElementById('pd-phone').value;
+            const location = document.getElementById('pd-location').value;
+            const linkedin = document.getElementById('pd-linkedin').value;
+            const website = document.getElementById('pd-website').value;
+            const summary = document.getElementById('pd-summary').value;
+            const skillsRaw = document.getElementById('skills-input').value;
+            const layout = document.getElementById('resume-layout').value;
+            const theme = document.getElementById('resume-theme').value;
+            const skills = skillsRaw.split(',').map(s => s.trim()).filter(Boolean);
+
+            const wrap = document.getElementById('resume-preview-wrapper');
+            wrap.className = `resume-preview-container theme-${theme}`;
+
+            let html = '';
+            const l = layout.toLowerCase();
+            
+            // Layout specific structure
+            if (l === 'modern') {
+                html = `<div class="sidebar">
+                    ${name ? `<h1 style="font-size: 24px; color: white; margin-bottom: 20px;">${name}</h1>` : ''}
+                    <div class="contact">
+                        ${email ? `<div>📧 ${email}</div>` : ''}
+                        ${phone ? `<div>📱 ${phone}</div>` : ''}
+                        ${location ? `<div>📍 ${location}</div>` : ''}
+                        ${linkedin ? `<div>🔗 LinkedIn</div>` : ''}
+                    </div>
+                    <div class="resume-section" style="margin-top: 30px;">
+                        <h2>Skills</h2>
+                        <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                            ${skills.map(s => `<span class="skill-tag" style="background:rgba(255,255,255,0.1); color:white">${s}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+                <div class="main-col">
+                    ${summary ? `<div class="resume-section"><h2>Profile</h2><p>${summary}</p></div>` : ''}
+                    <div id="preview-experience-list"></div>
+                    <div id="preview-education-list"></div>
+                </div>`;
+            } else if (l === 'creative') {
+                 html = `<div class="resume-header">
+                    ${name ? `<h1>${name}</h1>` : ''}
+                    <div class="contact" style="opacity:0.9; font-size:0.9rem; margin-top:10px;">
+                        ${[email, phone, location].filter(Boolean).join(' • ')}
+                    </div>
+                </div>
+                <div class="content-wrap">
+                    <div class="left-pane">
+                        ${summary ? `<div class="resume-section"><h2>About Me</h2><p>${summary}</p></div>` : ''}
+                        <div id="preview-education-list"></div>
+                        <div class="resume-section">
+                            <h2>Technical Skills</h2>
+                            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                                ${skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="right-pane">
+                        <div id="preview-experience-list"></div>
+                    </div>
+                </div>`;
+            } else if (l === 'academic') {
+                html = `<div class="resume-header">
+                    ${name ? `<h1>${name}</h1>` : ''}
+                    <div class="contact" style="font-style:italic">
+                        ${[email, phone, location, linkedin, website].filter(Boolean).join(' | ')}
+                    </div>
+                </div>
+                <div style="padding: 0 60px;">
+                    ${summary ? `<div class="resume-section"><h2>Research Statement</h2><p>${summary}</p></div>` : ''}
+                    <div id="preview-education-list"></div>
+                    <div id="preview-experience-list"></div>
+                    <div class="resume-section">
+                        <h2>Key Competencies</h2>
+                        <p>${skills.join(', ')}</p>
+                    </div>
+                </div>`;
+            } else if (l === 'executive') {
+                html = `<div class="resume-header">
+                    <div>
+                        ${name ? `<h1>${name}</h1>` : ''}
+                        <div style="color:var(--theme-color); font-weight:bold; letter-spacing:1px">PROFESSIONAL RESUME</div>
+                    </div>
+                    <div class="contact" style="text-align:right; font-size:0.85rem">
+                        ${email ? `<div>${email}</div>` : ''}
+                        ${phone ? `<div>${phone}</div>` : ''}
+                        ${location ? `<div>${location}</div>` : ''}
+                    </div>
+                </div>
+                <div style="padding: 0 50px;">
+                    ${summary ? `<div class="resume-section"><h2>Executive Profile</h2><p>${summary}</p></div>` : ''}
+                    <div id="preview-experience-list"></div>
+                    <div id="preview-education-list"></div>
+                    <div class="resume-section">
+                        <h2>Core Expertise</h2>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+                            ${skills.map(s => `<div>• ${s}</div>`).join('')}
+                        </div>
+                    </div>
+                </div>`;
+            } else {
+                // Minimalist (Default)
+                html = `<div class="resume-header">
+                    ${name ? `<h1>${name}</h1>` : ''}
+                    <div class="contact">${[email, phone, location, linkedin, website].filter(Boolean).join(' | ')}</div>
+                </div>
+                <div style="padding: 0 60px;">
+                    ${summary ? `<div class="resume-section"><h2>Summary</h2><p>${summary}</p></div>` : ''}
+                    <div id="preview-experience-list"></div>
+                    <div id="preview-education-list"></div>
+                    <div class="resume-section">
+                        <h2>Skills</h2>
+                        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                            ${skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            document.getElementById('resume-preview').innerHTML = html;
+            document.getElementById('resume-preview').className = `layout-${l}`;
+
+            // Render sub-lists into preview
+            const expList = document.getElementById('preview-experience-list');
+            if (expList && experiences.length) {
+                expList.innerHTML = `<h2>Experience</h2>` + experiences.map(exp => `
+                    <div class="resume-item">
+                        <div class="resume-item-header"><span>${exp.title}</span> <span>${exp.start}${exp.end ? ' – ' + exp.end : ''}</span></div>
+                        <div class="resume-item-sub">${exp.company}</div>
+                        <ul style="margin-top:5px; padding-left:15px;">${(exp.bullets || '').split('\n').filter(Boolean).map(b => `<li>${b.replace(/^[•-]\s*/, '')}</li>`).join('')}</ul>
+                    </div>
+                `).join('');
+            }
+
+            const eduList = document.getElementById('preview-education-list');
+            if (eduList && education.length) {
+                eduList.innerHTML = `<h2>Education</h2>` + education.map(edu => `
+                    <div class="resume-item">
+                        <div class="resume-item-header"><span>${edu.degree}</span> <span>${edu.year}</span></div>
+                        <div class="resume-item-sub">${edu.school} ${edu.gpa ? '· GPA: ' + edu.gpa : ''}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function aiSuggest(section, targetId, type) {
+            const el = document.getElementById(targetId);
+            if (!el) return;
+            const btn = event.target;
+            setLoading(btn, true);
+            try {
+                const data = await api('/api/resume/ai-suggest', {
+                    method: 'POST',
+                    body: JSON.stringify({ section: type, content: el.value, role: document.getElementById('pd-name').value })
+                });
+                el.value = data.suggestion;
+                if (section.startsWith('experience_')) {
+                    const i = parseInt(section.split('_')[1]);
+                    experiences[i].bullets = data.suggestion;
+                }
+                updatePreview();
+                showToast('AI suggestion applied!', 'success');
+            } catch (e) { showToast('AI suggestion failed', 'error'); }
+            finally { setLoading(btn, false, '✨ AI Improve'); }
+        }
+
+        async function saveResume() {
+            if (!resumeId) return;
+            const personal_details = {
+                name: document.getElementById('pd-name').value,
+                email: document.getElementById('pd-email').value,
+                phone: document.getElementById('pd-phone').value,
+                location: document.getElementById('pd-location').value,
+                linkedin: document.getElementById('pd-linkedin').value,
+                website: document.getElementById('pd-website').value
+            };
+            const skills = document.getElementById('skills-input').value.split(',').map(s => s.trim()).filter(Boolean);
+
+            try {
+                await api(`/api/resume/${resumeId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        title: resumeTitle,
+                        personal_details,
+                        summary: document.getElementById('pd-summary').value,
+                        experiences, education, skills,
+                        template: document.getElementById('resume-layout').value,
+                        theme: document.getElementById('resume-theme').value
+                    })
+                });
+                showToast('Resume saved!', 'success');
+            } catch (e) { showToast('Save failed', 'error'); }
+        }
+
+        async function printResume() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'pt', 'a4');
+            const element = document.getElementById('resume-preview-wrapper');
+
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⌛ Generating...';
+            btn.disabled = true;
+
+            try {
+                await html2canvas(element, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: '#ffffff'
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgProps = doc.getImageProperties(imgData);
+                    const pdfWidth = doc.internal.pageSize.getWidth();
+                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                    doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                    doc.save(`${resumeTitle || 'Resume'}.pdf`);
+                });
+                showToast('PDF downloaded successfully!', 'success');
+            } catch (e) {
+                console.error(e);
+                showToast('Failed to generate PDF', 'error');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function setBoilerplate(type) {
+            if (!confirm('This will overwrite current content. Continue?')) return;
+            
+            if (type === 'student') {
+                document.getElementById('pd-summary').value = 'Motivated and detail-oriented Computer Science student with a strong foundation in software development and problem-solving. Proven ability to learn quickly and contribute to team projects.';
+                experiences = [
+                    { title: 'Software Engineering Intern', company: 'Tech Startup Inc.', start: 'Jun 2023', end: 'Aug 2023', bullets: '• Developed new features for the React-based dashboard\n• Collaborated with senior engineers on API integration\n• Fixed 20+ frontend bugs during the internship' }
+                ];
+                education = [
+                    { degree: 'B.S. in Computer Science', school: 'University of Technology', year: '2024', gpa: '3.9/4.0' }
+                ];
+                document.getElementById('skills-input').value = 'JavaScript, React, Node.js, Python, Git, Agile';
+            } else {
+                document.getElementById('pd-summary').value = 'Senior Software Engineer with 8+ years of experience building scalable web applications. Expert in architectural design, team leadership, and modern DevOps practices.';
+                experiences = [
+                    { title: 'Senior Software Engineer', company: 'Global Tech Corp', start: '2019', end: 'Present', bullets: '• Led a team of 10 developers to build a high-traffic microservices platform\n• Reduced system latency by 40% through infrastructure optimization\n• Managed a $500k cloud budget' },
+                    { title: 'Software Developer', company: 'Fast Scale Solutions', start: '2015', end: '2019', bullets: '• Developed and maintained core product features used by 1M+ users\n• Implemented automated CI/CD pipelines' }
+                ];
+                education = [
+                    { degree: 'M.S. in Software Engineering', school: 'State University', year: '2015', gpa: '' }
+                ];
+                document.getElementById('skills-input').value = 'Architecture, JavaScript, AWS, Kubernetes, Node.js, Leadership';
+            }
+            renderExperiences();
+            renderEducation();
+            updatePreview();
+            showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} boilerplate applied!`, 'success');
+        }
+
+        updatePreview();
+    </script>
+</body>
+
+</html>

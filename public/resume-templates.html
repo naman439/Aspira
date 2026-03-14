@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Templates – Aspira</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .template-card {
+            background: #15151e;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .template-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent-blue);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+
+        .template-preview {
+            aspect-ratio: 1 / 1.414; /* A4 Ratio */
+            background: #ffffff;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            position: relative;
+            transform-origin: top center;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.05), 0 5px 15px rgba(0,0,0,0.1);
+            margin: 1rem;
+            border-radius: 4px;
+        }
+
+        /* Mini Preview Styles */
+        .p-block { background: #cbd5e1; border-radius: 1px; }
+        /* Placeholder lines should be dark enough to be visible on white */
+        .p-line { height: 3px; width: 100%; margin-bottom: 4px; opacity: 1; background: #cbd5e1; }
+        .p-title { height: 10px; width: 70%; margin-bottom: 8px; background: #1e293b; border-radius: 1px; }
+        .p-circle { width: 30px; height: 30px; border-radius: 50%; background: #cbd5e1; }
+        .p-section { margin-top: 10px; }
+        .p-subline { height: 2px; width: 40%; background: #94a3b8; margin-bottom: 6px; }
+
+        /* Layout Variations */
+        .prev-minimalist { align-items: center; text-align: center; }
+        .prev-minimalist .p-title { width: 40%; }
+        .prev-executive { border-top: 6px solid var(--theme-color); }
+        .prev-modern { display: grid; grid-template-columns: 32% 1fr; gap: 10px; padding: 0 !important; }
+        .prev-modern .side { height: 100%; border-radius: 0; padding: 15px 10px; }
+        .prev-modern .main { padding: 15px 15px; }
+        .prev-creative { position: relative; }
+        .prev-creative-header { height: 35px; background: var(--theme-color); padding: 10px 15px; margin-bottom: 10px; }
+
+        .template-info {
+            padding: 1.5rem;
+            background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.9));
+            color: #ffffff;
+        }
+
+        .template-info h3 {
+            color: #ffffff;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 0.5rem 0 0;
+            letter-spacing: -0.01em;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .filter-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.5rem 1.25rem;
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .filter-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .theme-tag {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent-blue);
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-pattern"></div>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <div style="width:32px;height:32px" id="nav-logo"></div>Aspira
+        </div>
+        <div class="navbar-actions">
+            <a href="/resume" class="btn btn-ghost btn-sm">← Back</a>
+            <span class="nav-user-name" id="nav-name"></span>
+            <div class="nav-avatar" id="nav-avatar"></div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <header style="margin-bottom: 3rem; text-align: center;">
+                <h1>Choose Your Template</h1>
+                <p>Select from 50+ professional variations to start your journey</p>
+            </header>
+
+            <div class="filter-bar">
+                <button class="filter-btn active" onclick="filterTemplates('all')">All Templates</button>
+                <button class="filter-btn" onclick="filterTemplates('premier')">✨ Premier</button>
+                <button class="filter-btn" onclick="filterTemplates('minimalist')">Minimalist</button>
+                <button class="filter-btn" onclick="filterTemplates('executive')">Executive</button>
+                <button class="filter-btn" onclick="filterTemplates('modern')">Modern</button>
+                <button class="filter-btn" onclick="filterTemplates('creative')">Creative</button>
+                <button class="filter-btn" onclick="filterTemplates('academic')">Academic</button>
+            </div>
+
+            <div class="template-grid" id="template-grid">
+                <!-- Templates will be injected here -->
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/shared.js"></script>
+    <script>
+        document.getElementById('nav-logo').innerHTML = LOGO_SVG;
+
+        const layouts = ['Minimalist', 'Executive', 'Modern', 'Creative', 'Academic', 'Tech-Student', 'Skill-Based', 'Corporate'];
+        const themes = [
+            { name: 'Midnight Blue', color: '#1e3a8a' },
+            { name: 'Forest Green', color: '#064e3b' },
+            { name: 'Slate Grey', color: '#334155' },
+            { name: 'Wine Red', color: '#7f1d1d' },
+            { name: 'Classic Black', color: '#000000' },
+            { name: 'Modern Teal', color: '#0d9488' },
+            { name: 'Royal Purple', color: '#581c87' },
+            { name: 'Soft Rose', color: '#fb7185' },
+            { name: 'Ocean Breeze', color: '#0284c7' },
+            { name: 'Typography Gold', color: '#854d0e' }
+        ];
+
+        (async () => {
+            const user = await checkAuth('/sign-in');
+            if (user) {
+                document.getElementById('nav-name').textContent = user.name.split(' ')[0];
+                document.getElementById('nav-avatar').textContent = user.name.charAt(0).toUpperCase();
+            }
+            renderTemplates('all');
+        })();
+
+        function renderTemplates(filter) {
+            const grid = document.getElementById('template-grid');
+            grid.innerHTML = '';
+
+            layouts.forEach(layout => {
+                const l = layout.toLowerCase();
+                const isPremier = ['tech-student', 'skill-based', 'corporate'].includes(l);
+                
+                if (filter !== 'all') {
+                    if (filter === 'premier' && !isPremier) return;
+                    if (filter !== 'premier' && l !== filter) return;
+                }
+
+                themes.forEach(theme => {
+                    const card = document.createElement('div');
+                    card.className = 'template-card';
+                    card.onclick = () => selectTemplate(layout, theme.name);
+
+                    let previewHtml = '';
+
+                    if (l === 'modern') {
+                        previewHtml = `
+                            <div class="side" style="background: ${theme.color}; opacity: 0.15">
+                                <div class="p-circle" style="margin: 0 auto 12px; background: #94a3b8;"></div>
+                                <div class="p-line" style="width: 80%; margin: 6px auto; background: #94a3b8;"></div>
+                                <div class="p-line" style="width: 60%; margin: 6px auto; background: #94a3b8;"></div>
+                            </div>
+                            <div class="main">
+                                <div class="p-title" style="background: ${theme.color}; width: 60%"></div>
+                                <div class="p-line" style="margin-bottom: 12px; height: 1px; background: #e2e8f0;"></div>
+                                ${Array(3).fill(`<div class="p-section">
+                                    <div class="p-line" style="width: 30%; height: 4px; margin-bottom:4px; background: #1e293b;"></div>
+                                    <div class="p-line" style="width: 90%; height: 2px; background: #cbd5e1;"></div>
+                                    <div class="p-line" style="width: 80%; height: 2px; background: #cbd5e1;"></div>
+                                </div>`).join('')}
+                            </div>
+                        `;
+                    } else if (l === 'tech-student') {
+                        previewHtml = `
+                            <div style="text-align: center; margin-bottom: 5px;">
+                                <div class="p-title" style="width: 40%; margin: 0 auto; height: 8px; background: #1e293b"></div>
+                                <div class="p-line" style="width: 60%; margin: 3px auto; height: 2px; background: #475569;"></div>
+                            </div>
+                            <div style="border-bottom: 1.5px solid #000; margin-bottom: 8px;"></div>
+                            ${Array(4).fill(`<div class="p-section" style="margin-top:5px">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                                    <div class="p-line" style="width: 35%; height: 4px; background: #1e293b;"></div>
+                                    <div class="p-line" style="width: 15%; height: 3px; background: #64748b;"></div>
+                                </div>
+                                <div class="p-line" style="width: 100%; height: 2px; background: #94a3b8;"></div>
+                            </div>`).join('')}
+                        `;
+                    } else if (l === 'skill-based') {
+                        previewHtml = `
+                            <div style="border-left: 5px solid ${theme.color}; padding-left: 10px; margin-bottom: 15px;">
+                                <div class="p-title" style="width: 70%; height: 12px; background: #1e293b"></div>
+                                <div class="p-line" style="width: 30%; height: 2px; background: #64748b;"></div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+                                <div class="p-title" style="width: 25%; height: 6px; background: ${theme.color}; opacity: 0.8; margin: 0;"></div>
+                                <div style="flex: 1; height: 1px; background: #e2e8f0;"></div>
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 20px;">
+                                ${Array(6).fill(`<div style="width: 28%; height: 12px; border-radius: 4px; background: #cbd5e1;"></div>`).join('')}
+                            </div>
+                            <div class="p-title" style="width: 30%; height: 6px; background: #64748b"></div>
+                            <div class="p-line" style="width: 90%; height: 2px; background: #cbd5e1;"></div>
+                            <div class="p-line" style="width: 80%; height: 2px; background: #cbd5e1;"></div>
+                        `;
+                    } else if (l === 'corporate') {
+                        previewHtml = `
+                            <div style="height: 6px; background: ${theme.color}; margin: -1.5rem -1.5rem 10px;"></div>
+                            <div style="padding: 0 5px;">
+                                <div class="p-title" style="width: 50%; height: 10px; background: #1e293b"></div>
+                                <div class="p-line" style="width: 25%; height: 2px; background: #64748b;"></div>
+                                <div style="display: grid; grid-template-columns: 1fr 60px; gap: 15px; margin-top: 15px;">
+                                    <div>
+                                        <div style="border-top: 1px solid #e2e8f0; padding-top: 5px; margin-bottom: 10px;">
+                                            <div class="p-line" style="width: 40%; height: 5px; background: #1e293b;"></div>
+                                            <div class="p-line" style="width: 100%; height: 2px; background: #cbd5e1;"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="p-title" style="width: 100%; height: 6px; background: #94a3b8; margin-bottom: 5px;"></div>
+                                        <div class="p-line" style="height: 2px; margin-bottom: 3px; background: #cbd5e1;"></div>
+                                        <div class="p-line" style="height: 2px; margin-bottom: 3px; background: #cbd5e1;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else if (l === 'creative') {
+                        previewHtml = `
+                            <div class="prev-creative-header" style="height: 40px; background: ${theme.color}; margin-top: -1.5rem; margin-left: -1.5rem; margin-right: -1.5rem;">
+                                <div class="p-line" style="width: 40%; background: white; height: 10px; opacity: 1; margin: 15px;"></div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px 10px 0;">
+                                <div>
+                                    <div class="p-title" style="width: 70%; height: 8px; background: #1e293b"></div>
+                                    ${Array(3).fill('<div class="p-line" style="height: 3px; background: #cbd5e1;"></div>').join('')}
+                                </div>
+                                <div>
+                                    <div class="p-title" style="width: 70%; height: 8px; background: #1e293b"></div>
+                                    ${Array(3).fill('<div class="p-line" style="height: 3px; background: #cbd5e1;"></div>').join('')}
+                                </div>
+                            </div>
+                        `;
+                    } else if (l === 'minimalist') {
+                        previewHtml = `
+                            <div style="text-align: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px;">
+                                <div class="p-title" style="width: 50%; margin: 0 auto 4px; height: 12px; background: #1e293b; opacity: 1;"></div>
+                                <div class="p-line" style="width: 30%; margin: 0 auto; height: 3px; background: #64748b;"></div>
+                            </div>
+                            ${Array(4).fill(`<div class="p-section" style="margin-top:8px">
+                                <div class="p-title" style="width: 30%; height: 6px; background: #475569; margin-bottom: 4px;"></div>
+                                <div class="p-line" style="height: 2px; margin-bottom: 2px; background: #cbd5e1;"></div>
+                                <div class="p-line" style="width: 90%; height: 2px; background: #e2e8f0;"></div>
+                            </div>`).join('')}
+                        `;
+                    } else if (l === 'executive') {
+                        previewHtml = `
+                            <div style="display: flex; justify-content: space-between; border-bottom: 3px solid ${theme.color}; padding-bottom: 8px; margin-bottom: 15px;">
+                                <div class="p-title" style="width: 50%; height: 14px; background: #1e293b; opacity: 1; margin: 0;"></div>
+                                <div class="p-line" style="width: 15%; height: 3px; background: #94a3b8;"></div>
+                            </div>
+                            <div style="background: ${theme.color}; opacity: 0.1; height: 15px; margin-bottom: 15px;"></div>
+                            ${Array(3).fill(`<div class="p-section" style="margin-top:10px">
+                                <div class="p-title" style="width: 30%; height: 6px; background: #475569; margin-bottom: 5px;"></div>
+                                <div class="p-line" style="height: 2px; background: #cbd5e1;"></div>
+                                <div class="p-line" style="width: 95%; height: 2px; background: #e2e8f0;"></div>
+                            </div>`).join('')}
+                        `;
+                    } else {
+                        previewHtml = `
+                            <div style="display: flex; justify-content: space-between; border-bottom: 2px solid ${theme.color}; padding-bottom: 10px; margin-bottom: 15px;">
+                                <div class="p-title" style="width: 50%; height: 15px; background: ${theme.color}; opacity: 0.9"></div>
+                                <div class="p-line p-block" style="width: 20%"></div>
+                            </div>
+                            <div class="p-block" style="height: 8px; width: 40%; margin-bottom: 10px; background: ${theme.color}; opacity: 0.1"></div>
+                            <div class="p-line p-block"></div>
+                            <div class="p-line p-block"></div>
+                            <div class="p-line p-block" style="width: 70%"></div>
+                        `;
+                    }
+
+                    card.innerHTML = `
+                        <div class="template-preview prev-${l}" style="--theme-color: ${theme.color}">
+                            ${previewHtml}
+                        </div>
+                        <div class="template-info">
+                            <span class="theme-tag" style="color: ${theme.color}">${theme.name} ${isPremier ? '✨' : ''}</span>
+                            <h3 style="font-size:1.1rem">${layout.replace('-', ' ')}</h3>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            });
+        }
+
+        function filterTemplates(filter) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase() === filter || (filter === 'all' && btn.textContent === 'All Templates'));
+            });
+            renderTemplates(filter);
+        }
+
+        async function selectTemplate(layout, theme) {
+            const title = prompt('Name your resume:', `${layout} ${theme}`);
+            if (!title) return;
+
+            try {
+                const data = await api('/api/resume', {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        title, 
+                        template: layout.toLowerCase(), 
+                        theme: theme.toLowerCase().replace(' ', '-') 
+                    })
+                });
+                window.location.href = `/resume-edit?id=${data.id}`;
+            } catch (e) {
+                showToast(e.message, 'error');
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS Score Checker – Aspira</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        :root {
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --accent-glow: rgba(59, 130, 246, 0.15);
+        }
+
+        .step-container {
+            max-width: 800px;
+            margin: 0 auto;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--glass-border);
+            background: var(--glass);
+            border-radius: 24px;
+            padding: 5rem 2rem;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+        }
+
+        .upload-zone::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, var(--accent-glow) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .upload-zone:hover::before {
+            opacity: 1;
+        }
+
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--accent-blue);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .upload-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+            filter: drop-shadow(0 0 20px var(--accent-glow));
+        }
+
+        .file-info {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 14px;
+            margin-top: 1.5rem;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Analysis Report Styles */
+        .report-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 2.5rem;
+            margin-top: 2rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .report-sidebar {
+            position: sticky;
+            top: 2rem;
+        }
+
+        .main-score-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 3rem 2rem;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 24px 48px rgba(0,0,0,0.2);
+        }
+
+        .score-ring {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            margin: 0 auto 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: conic-gradient(var(--accent-blue) calc(var(--score) * 1%), rgba(255,255,255,0.03) 0);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+        }
+
+        .score-ring::before {
+            content: '';
+            position: absolute;
+            inset: 14px;
+            background: #0f172a;
+            border-radius: 50%;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+        }
+
+        .score-inner {
+            position: relative;
+            z-index: 1;
+        }
+
+        .score-number {
+            font-size: 4rem;
+            font-weight: 900;
+            display: block;
+            line-height: 1;
+            background: linear-gradient(to bottom, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .score-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 0.5rem;
+            display: block;
+        }
+
+        .category-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 1.75rem;
+            margin-bottom: 1.25rem;
+            transition: transform 0.3s;
+        }
+
+        .category-card:hover {
+            transform: scale(1.01);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .cat-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 1.25rem;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--accent-blue), #60a5fa);
+            transition: width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .feedback-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feedback-item {
+            font-size: 0.95rem;
+            padding: 0.6rem 0;
+            padding-left: 1.75rem;
+            position: relative;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        .feedback-item::before {
+            content: '✦';
+            position: absolute;
+            left: 0;
+            color: var(--accent-blue);
+            font-size: 0.8rem;
+        }
+
+        .tag-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .tag-item {
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 900px) {
+            .report-grid { grid-template-columns: 1fr; }
+            .report-sidebar { position: static; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-pattern"></div>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <div style="width:32px;height:32px" id="nav-logo"></div>Aspira
+        </div>
+        <div class="navbar-actions">
+            <a href="/dashboard" class="btn btn-ghost btn-sm">← Dashboard</a>
+            <span class="nav-user-name" id="nav-name"></span>
+            <div class="nav-avatar" id="nav-avatar"></div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <!-- Step 1: Upload -->
+            <section id="step-upload" class="step-container">
+                <header style="text-align:center; margin-bottom: 3rem;">
+                    <h1 style="font-size: 3rem; margin-bottom: 1rem;">ATS Score Checker</h1>
+                    <p style="font-size: 1.25rem; color: var(--text-muted)">Get your resume score and professional improvement tips in seconds.</p>
+                </header>
+
+                <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                    <input type="file" id="file-input" accept=".pdf" style="display:none" onchange="handleFileUpload(this)">
+                    <span class="upload-icon">📄</span>
+                    <h2>Upload your Resume</h2>
+                    <p class="text-muted">Drag and drop your PDF here, or click to browse</p>
+                    <div id="selected-file" class="hidden">
+                        <div class="file-info">
+                            <span id="file-name-display">resume.pdf</span>
+                            <span>✓</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 2: Context -->
+            <section id="step-context" class="step-container hidden">
+                <header style="text-align:center; margin-bottom: 2rem;">
+                    <h2>Adding Context</h2>
+                    <p class="text-muted">Tell us about the job you're targeting for a more accurate score.</p>
+                </header>
+                
+                <div class="card card-glow" style="max-width: 600px; margin: 0 auto;">
+                    <div class="form-group mb-4">
+                        <label>Target Job Role</label>
+                        <input type="text" id="job-role" placeholder="e.g. Senior Product Designer">
+                    </div>
+                    <div class="form-group mb-4">
+                        <label>Job Description (Optional)</label>
+                        <textarea id="job-desc" rows="5" placeholder="Paste the job requirements to check for missing keywords..."></textarea>
+                    </div>
+                    <button class="btn btn-primary btn-lg w-full" id="analyze-btn" onclick="runAnalysis()">Analyze My Resume</button>
+                    <button class="btn btn-ghost w-full mt-2" onclick="resetFlow()">Change Resume</button>
+                </div>
+            </section>
+
+            <!-- Step 3: Report -->
+            <section id="step-report" class="hidden">
+                <div class="report-grid">
+                    <div class="report-sidebar">
+                        <div class="main-score-card">
+                            <div class="score-ring" id="score-ring" style="--score: 0">
+                                <div class="score-inner">
+                                    <span class="score-number" id="score-val">0</span>
+                                    <span class="score-label">Overall Score</span>
+                                </div>
+                            </div>
+                            <h3 id="score-text" style="margin-bottom: 0.5rem;">Good</h3>
+                            <p id="match-summary" class="text-sm text-muted"></p>
+                            <button class="btn btn-secondary w-full mt-6" onclick="resetFlow()">Run New Analysis</button>
+                        </div>
+
+                        <div class="card mt-4" style="padding: 1.5rem;">
+                            <h4 style="margin-bottom: 1rem;">Missing Keywords</h4>
+                            <div class="tag-cloud" id="missing-tags"></div>
+                        </div>
+                    </div>
+
+                    <div class="report-main">
+                        <div id="category-results">
+                            <!-- Category Cards injected here -->
+                        </div>
+
+                        <div class="category-card" style="border-left: 4px solid #f87171;">
+                            <div class="cat-title">⚠️ Formatting Issues</div>
+                            <ul class="feedback-list mt-2" id="format-list"></ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="hidden" style="text-align:center; padding: 10rem 0;">
+                <span class="spinner" style="width:64px; height:64px; border-width: 4px;"></span>
+                <h2 class="mt-4">Analyzing Your Resume</h2>
+                <p class="text-muted">Our AI is breaking down your content...</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/shared.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        document.getElementById('nav-logo').innerHTML = LOGO_SVG;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let extractedText = "";
+        let currentFileName = "";
+
+        // Drag and Drop
+        const dropZone = document.getElementById('drop-zone');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+            dropZone.addEventListener(evt, e => {
+                e.preventDefault();
+                e.stopPropagation();
+            }, false);
+        });
+
+        dropZone.addEventListener('dragover', () => dropZone.classList.add('dragover'));
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', e => {
+            dropZone.classList.remove('dragover');
+            handleFileUpload({ files: e.dataTransfer.files });
+        });
+
+        async function handleFileUpload(input) {
+            const file = input.files[0];
+            if (!file || file.type !== 'application/pdf') {
+                return showToast('Please select a valid PDF file', 'error');
+            }
+
+            currentFileName = file.name;
+            document.getElementById('file-name-display').textContent = file.name;
+            document.getElementById('selected-file').classList.remove('hidden');
+            
+            const reader = new FileReader();
+            reader.onload = async function() {
+                const typedarray = new Uint8Array(this.result);
+                try {
+                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                    let fullText = "";
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        fullText += textContent.items.map(item => item.str).join(" ") + "\n";
+                    }
+                    extractedText = fullText.trim();
+                    
+                    // Transition to step 2 after short delay for visual feedback
+                    setTimeout(() => {
+                        document.getElementById('step-upload').classList.add('hidden');
+                        document.getElementById('step-context').classList.remove('hidden');
+                    }, 800);
+                } catch (err) {
+                    showToast('Failed to parse PDF', 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function resetFlow() {
+            extractedText = "";
+            currentFileName = "";
+            document.getElementById('step-upload').classList.remove('hidden');
+            document.getElementById('step-context').classList.add('hidden');
+            document.getElementById('step-report').classList.add('hidden');
+            document.getElementById('selected-file').classList.add('hidden');
+            document.getElementById('job-role').value = "";
+            document.getElementById('job-desc').value = "";
+        }
+
+        async function runAnalysis() {
+            const role = document.getElementById('job-role').value;
+            const desc = document.getElementById('job-desc').value;
+
+            if (!role) return showToast('Please enter a target job role', 'info');
+
+            document.getElementById('step-context').classList.add('hidden');
+            document.getElementById('loading-state').classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/resume/ats-check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        resumeText: extractedText, 
+                        jobRole: role, 
+                        jobDescription: desc,
+                        resumeName: currentFileName
+                    })
+                });
+
+                const results = await response.json();
+                if (!response.ok) {
+                    showToast(results.error || 'Analysis failed', 'error');
+                    document.getElementById('step-context').classList.remove('hidden');
+                    return;
+                }
+
+                renderReport(results);
+            } catch (e) {
+                showToast('Network error or server down', 'error');
+                document.getElementById('step-context').classList.remove('hidden');
+            } finally {
+                document.getElementById('loading-state').classList.add('hidden');
+            }
+        }
+
+        function renderReport(data) {
+            document.getElementById('step-report').classList.remove('hidden');
+            
+            // Overall Score
+            document.getElementById('score-val').textContent = data.score;
+            document.getElementById('score-ring').style.setProperty('--score', data.score);
+            document.getElementById('score-text').textContent = data.score > 80 ? 'Excellent' : (data.score > 60 ? 'Strong' : 'Needs Work');
+            document.getElementById('match-summary').textContent = data.match_summary;
+
+            // Categories
+            const catContainer = document.getElementById('category-results');
+            catContainer.innerHTML = '';
+            
+            const icons = { brevity: '⏱️', impact: '💥', style: '🎨', content: '📝' };
+            
+            Object.entries(data.categories).forEach(([key, val]) => {
+                const card = document.createElement('div');
+                card.className = 'category-card';
+                card.innerHTML = `
+                    <div class="category-header">
+                        <div class="cat-title">${icons[key] || '•'} ${key.charAt(0).toUpperCase() + key.slice(1)}</div>
+                        <div style="font-weight: 800; color: ${val.score > 70 ? '#4ade80' : '#fbbf24'}">${val.score}</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%; background: ${val.score > 70 ? '#4ade80' : '#fbbf24'}"></div>
+                    </div>
+                    <ul class="feedback-list">
+                        ${val.feedback.map(f => `<li class="feedback-item">${f}</li>`).join('')}
+                    </ul>
+                `;
+                catContainer.appendChild(card);
+                // Trigger animation
+                setTimeout(() => card.querySelector('.progress-fill').style.width = val.score + '%', 100);
+            });
+
+            // Keywords
+            const tags = document.getElementById('missing-tags');
+            tags.innerHTML = data.missing_keywords.map(k => `<span class="tag-item">${k}</span>`).join('');
+
+            // Formatting
+            const format = document.getElementById('format-list');
+            format.innerHTML = data.formatting_issues.map(i => `<li class="feedback-item">${i}</li>`).join('');
+        }
+
+        (async () => {
+            const user = await checkAuth('/sign-in');
+            buildNav(user);
+
+            // Check for saved report in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const reportId = urlParams.get('reportId');
+            if (reportId) {
+                document.getElementById('step-upload').classList.add('hidden');
+                document.getElementById('loading-state').classList.remove('hidden');
+                try {
+                    const response = await fetch(`/api/resume/ats-report/${reportId}`);
+                    if (response.ok) {
+                        const results = await response.json();
+                        renderReport(results);
+                    } else {
+                        showToast('Report not found', 'error');
+                        document.getElementById('step-upload').classList.remove('hidden');
+                    }
+                } catch (err) {
+                    showToast('Failed to load report', 'error');
+                    document.getElementById('step-upload').classList.remove('hidden');
+                } finally {
+                    document.getElementById('loading-state').classList.add('hidden');
+                }
+            }
+        })();
+    </script>
+</body>
+</html>

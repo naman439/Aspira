@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Tracker – Aspira</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .tracker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .app-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .app-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-blue);
+        }
+
+        .app-status {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-applied {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+        }
+
+        .status-interviewing {
+            background: rgba(245, 158, 11, 0.1);
+            color: #fbbf24;
+        }
+
+        .status-offered {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+        }
+
+        .status-rejected {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+        }
+
+        .app-actions {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            color: var(--text-muted);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-pattern"></div>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <div style="width:32px;height:32px" id="nav-logo"></div>Aspira
+        </div>
+        <div class="navbar-actions">
+            <a href="/dashboard" class="btn btn-ghost btn-sm">← Dashboard</a>
+            <span class="nav-user-name" id="nav-name"></span>
+            <div class="nav-avatar" id="nav-avatar"></div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container" style="max-width: 800px;">
+            <div class="tracker-header">
+                <div>
+                    <h1>Job Tracker</h1>
+                    <p>Manage your job applications and interview pipeline</p>
+                </div>
+                <button class="btn btn-primary" onclick="showModal()">+ Add Application</button>
+            </div>
+
+            <div id="applications-list">
+                <!-- Data will be loaded here -->
+                <div class="empty-state">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">💼</div>
+                    <h3>No applications tracked yet</h3>
+                    <p>Start tracking your job search by adding your first application.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Modal -->
+    <div id="appModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Add Job Application</h2>
+            <form id="appForm" style="margin-top: 1.5rem;">
+                <input type="hidden" id="appId">
+                <div class="form-group">
+                    <label>Company</label>
+                    <input type="text" id="company" required placeholder="e.g. Google">
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <input type="text" id="role" required placeholder="e.g. Senior Frontend Engineer">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="status">
+                            <option value="applied">Applied</option>
+                            <option value="interviewing">Interviewing</option>
+                            <option value="offered">Offered</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="location" placeholder="e.g. Remote">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Salary Range (Optional)</label>
+                    <input type="text" id="salary" placeholder="e.g. $120k - $150k">
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="notes" rows="3" placeholder="Any specific details or links..."></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Save Application</button>
+                    <button type="button" class="btn btn-ghost" onclick="hideModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/shared.js"></script>
+    <script>
+        document.getElementById('nav-logo').innerHTML = LOGO_SVG;
+        let applications = [];
+
+        (async () => {
+            const user = await checkAuth('/sign-in');
+            buildNav(user);
+            loadApplications();
+        })();
+
+        async function loadApplications() {
+            try {
+                const res = await api('/api/tracker');
+                applications = res.applications;
+                renderApplications();
+            } catch (e) {
+                toast('Failed to load applications');
+            }
+        }
+
+        function renderApplications() {
+            const list = document.getElementById('applications-list');
+            if (applications.length === 0) {
+                list.innerHTML = `<div class="empty-state">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">💼</div>
+                    <h3>No applications tracked yet</h3>
+                    <p>Start tracking your job search by adding your first application.</p>
+                </div>`;
+                return;
+            }
+
+            list.innerHTML = '';
+            applications.forEach(app => {
+                const card = document.createElement('div');
+                card.className = 'app-card';
+                card.innerHTML = `
+                    <span class="app-status status-${app.status}">${app.status}</span>
+                    <h3>${app.company}</h3>
+                    <p class="text-muted" style="font-size: 0.9rem;">${app.role} · ${app.location || 'N/A'}</p>
+                    ${app.salary ? `<p style="font-size: 0.85rem; margin-top: 0.25rem;"><span style="color:var(--accent-blue)">💰</span> ${app.salary}</p>` : ''}
+                    <div class="app-actions">
+                        <button class="btn btn-ghost btn-sm" onclick="editApp('${app.id}')">Edit</button>
+                        <button class="btn btn-ghost btn-sm" style="color:var(--accent-red)" onclick="deleteApp('${app.id}')">Delete</button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        async function handleForm(e) {
+            e.preventDefault();
+            const data = {
+                company: document.getElementById('company').value,
+                role: document.getElementById('role').value,
+                status: document.getElementById('status').value,
+                location: document.getElementById('location').value,
+                salary: document.getElementById('salary').value,
+                notes: document.getElementById('notes').value,
+            };
+            const id = document.getElementById('appId').value;
+            try {
+                if (id) {
+                    await api(`/api/tracker/${id}`, 'PUT', data);
+                } else {
+                    await api('/api/tracker', 'POST', data);
+                }
+                toast('Success!');
+                hideModal();
+                loadApplications();
+            } catch (e) {
+                toast('Action failed');
+            }
+        }
+
+        document.getElementById('appForm').addEventListener('submit', handleForm);
+
+        function showModal(id = null) {
+            const modal = document.getElementById('appModal');
+            document.getElementById('modalTitle').textContent = id ? 'Edit Application' : 'Add Job Application';
+            document.getElementById('appId').value = id || '';
+            if (id) {
+                const app = applications.find(a => a.id === id);
+                document.getElementById('company').value = app.company;
+                document.getElementById('role').value = app.role;
+                document.getElementById('status').value = app.status;
+                document.getElementById('location').value = app.location;
+                document.getElementById('salary').value = app.salary;
+                document.getElementById('notes').value = app.notes;
+            } else {
+                document.getElementById('appForm').reset();
+            }
+            modal.style.display = 'flex';
+        }
+
+        function hideModal() {
+            document.getElementById('appModal').style.display = 'none';
+        }
+
+        function editApp(id) { showModal(id); }
+
+        async function deleteApp(id) {
+            if (!confirm('Are you sure?')) return;
+            try {
+                await api(`/api/tracker/${id}`, 'DELETE');
+                toast('Deleted');
+                loadApplications();
+            } catch (e) { toast('Delete failed'); }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Builder – Aspira</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <div class="bg-pattern"></div>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <div style="width:32px;height:32px" id="nav-logo"></div>Aspira
+        </div>
+        <div class="navbar-actions">
+            <a href="/dashboard" class="btn btn-ghost btn-sm">← Dashboard</a>
+            <span class="nav-user-name" id="nav-name"></span>
+            <div class="nav-avatar" id="nav-avatar"></div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container" style="padding:2rem 1.5rem;">
+            <header style="text-align:center; margin-bottom:3rem;">
+                <h1>Resume Hub</h1>
+                <p>Build from scratch or verify your existing resume for ATS optimization</p>
+            </header>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:2rem; margin-bottom:4rem;">
+                <!-- Option 1: Create -->
+                <div class="card card-glow" style="padding:2.5rem; text-align:center; cursor:pointer;" onclick="window.location='/resume-templates'">
+                    <div style="font-size:4rem; margin-bottom:1.5rem;">🎨</div>
+                    <h2>Resume Creator</h2>
+                    <p style="margin:1rem 0 2rem; color:var(--text-muted);">Choose from 50+ professional templates and build your resume with AI assistance.</p>
+                    <button class="btn btn-primary btn-lg w-full">Browse Templates</button>
+                </div>
+
+                <!-- Option 2: Check -->
+                <div class="card card-glow" style="padding:2.5rem; text-align:center; cursor:pointer;" onclick="window.location='/ats-checker'">
+                    <div style="font-size:4rem; margin-bottom:1.5rem;">⚖️</div>
+                    <h2>ATS Score Checker</h2>
+                    <p style="margin:1rem 0 2rem; color:var(--text-muted);">Already have a resume? Check how well it matches your dream job role.</p>
+                    <button class="btn btn-secondary btn-lg w-full">Check Match Score</button>
+                </div>
+            </div>
+
+            <div style="border-top: 1px solid var(--border); padding-top: 3rem;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;">
+                    <h2>Your Saved Resumes</h2>
+                </div>
+
+                <!-- Resume list -->
+                <div id="resume-list"
+                    style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;">
+                    <div style="text-align:center;padding:3rem;"><span class="spinner"
+                            style="width:36px;height:36px;border-width:3px;"></span></div>
+                </div>
+
+                <!-- Empty state -->
+                <div id="resume-empty" class="hidden" style="text-align:center;padding:3rem 2rem;">
+                    <p style="color:var(--text-muted)">You haven't created any resumes yet.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/shared.js"></script>
+    <script>
+        document.getElementById('nav-logo').innerHTML = LOGO_SVG;
+
+        (async () => {
+            const user = await checkAuth('/sign-in');
+            if (user) {
+                document.getElementById('nav-name').textContent = user.name.split(' ')[0];
+                document.getElementById('nav-avatar').textContent = user.name.charAt(0).toUpperCase();
+            }
+            await loadResumes();
+        })();
+
+        async function loadResumes() {
+            try {
+                const data = await api('/api/resume');
+                const list = document.getElementById('resume-list');
+                if (data.resumes.length === 0) {
+                    list.classList.add('hidden');
+                    document.getElementById('resume-empty').classList.remove('hidden');
+                    return;
+                }
+                list.innerHTML = data.resumes.map(r => `
+          <div class="card card-glow" style="cursor:pointer" onclick="window.location='/resume-edit?id=${r.id}'">
+            <div style="font-size:2rem;margin-bottom:1rem;">📄</div>
+            <h3 style="font-size:1rem;margin-bottom:0.5rem;">${r.title || 'Untitled Resume'}</h3>
+            <p style="font-size:0.75rem;color:var(--text-muted)">Updated ${formatDate(r.updated_at)}</p>
+            <div style="display:flex;gap:8px;margin-top:1.25rem;">
+              <a href="/resume-edit?id=${r.id}" class="btn btn-primary btn-sm">Edit</a>
+              <button class="btn btn-danger btn-sm" onclick="deleteResume(event,'${r.id}')">Delete</button>
+            </div>
+          </div>
+        `).join('');
+            } catch (e) { console.error(e); }
+        }
+
+        async function createResume() {
+            const title = prompt('Resume title:', 'My Resume');
+            if (!title) return;
+            try {
+                const data = await api('/api/resume', { method: 'POST', body: JSON.stringify({ title }) });
+                window.location.href = `/resume-edit?id=${data.id}`;
+            } catch (e) { showToast(e.message, 'error'); }
+        }
+
+        async function deleteResume(e, id) {
+            e.stopPropagation();
+            if (!confirm('Delete this resume?')) return;
+            try {
+                await api(`/api/resume/${id}`, { method: 'DELETE' });
+                showToast('Resume deleted', 'success');
+                loadResumes();
+            } catch (e) { showToast(e.message, 'error'); }
+        }
+    </script>
+</body>
+
+</html>

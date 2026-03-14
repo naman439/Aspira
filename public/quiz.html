@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCQ Quiz – Aspira</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <div class="bg-pattern"></div>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <div style="width:32px;height:32px" id="nav-logo"></div>Aspira
+        </div>
+        <div class="navbar-actions">
+            <a href="/dashboard" class="btn btn-ghost btn-sm">← Dashboard</a>
+            <span class="nav-user-name" id="nav-name"></span>
+            <div class="nav-avatar" id="nav-avatar"></div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container-sm" style="padding:2rem 1.5rem;">
+            <!-- Setup phase -->
+            <div id="setup-phase">
+                <div class="page-header" style="text-align:left;padding-top:1rem;">
+                    <h1>🧠 Technical Assessment</h1>
+                    <p>AI-generated role-based MCQ quizzes with detailed explanations</p>
+                </div>
+                <div class="card">
+                    <h3 class="mb-6">Configure Your Quiz</h3>
+                    <div class="form-group mb-4">
+                        <label>Job Role</label>
+                        <input type="text" id="q-role" placeholder="e.g. Frontend Developer, Data Scientist">
+                    </div>
+                    <div class="form-group mb-4">
+                        <label>Focus Area / Skill</label>
+                        <input type="text" id="q-skill" placeholder="e.g. React, Python, SQL, System Design">
+                    </div>
+                    <div class="form-group mb-6">
+                        <label>Number of Questions</label>
+                        <select id="q-count">
+                            <option value="5">5 Questions (Quick)</option>
+                            <option value="10" selected>10 Questions (Standard)</option>
+                            <option value="15">15 Questions (Comprehensive)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary btn-lg w-full" id="generate-btn" onclick="generateQuiz()">Generate
+                        Quiz</button>
+                </div>
+            </div>
+
+            <!-- Quiz phase -->
+            <div id="quiz-phase" class="hidden">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+                    <div>
+                        <h2 id="quiz-title">Quiz</h2>
+                        <p id="quiz-progress-text" class="text-sm text-muted"></p>
+                    </div>
+                    <span class="badge badge-blue" id="quiz-timer">Q 1 of 10</span>
+                </div>
+                <div class="quiz-progress">
+                    <div class="quiz-progress-bar" id="progress-bar" style="width:0%"></div>
+                </div>
+                <div id="question-container"></div>
+                <div style="display:flex;gap:1rem;justify-content:flex-end;margin-top:1rem;">
+                    <button class="btn btn-ghost" id="skip-btn" onclick="nextQuestion()">Skip</button>
+                    <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()" disabled>Next →</button>
+                </div>
+            </div>
+
+            <!-- Result phase -->
+            <div id="result-phase" class="hidden">
+                <div class="quiz-result card">
+                    <div class="result-circle" id="result-circle">
+                        <div class="result-score" id="result-pct">–%</div>
+                        <div class="result-label">Score</div>
+                    </div>
+                    <h2 id="result-title" class="mt-4 mb-2"></h2>
+                    <p id="result-msg" class="mb-6"></p>
+                    <div id="result-breakdown" style="text-align:left;margin-bottom:1.5rem;"></div>
+                    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+                        <button class="btn btn-primary" onclick="resetQuiz()">Try Again</button>
+                        <a href="/analytics" class="btn btn-secondary">View Analytics</a>
+                        <a href="/dashboard" class="btn btn-ghost">Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/shared.js"></script>
+    <script>
+        document.getElementById('nav-logo').innerHTML = LOGO_SVG;
+        let questions = [], currentQ = 0, answers = {}, quizId = null;
+
+        (async () => {
+            const user = await checkAuth('/sign-in');
+            if (user) {
+                document.getElementById('nav-name').textContent = user.name.split(' ')[0];
+                document.getElementById('nav-avatar').textContent = user.name.charAt(0).toUpperCase();
+            }
+        })();
+
+        async function generateQuiz() {
+            const role = document.getElementById('q-role').value.trim();
+            if (!role) return showToast('Please enter a job role', 'error');
+            const btn = document.getElementById('generate-btn');
+            setLoading(btn, true);
+            try {
+                const data = await api('/api/quiz/generate', {
+                    method: 'POST',
+                    body: JSON.stringify({ role, skill: document.getElementById('q-skill').value, count: parseInt(document.getElementById('q-count').value) })
+                });
+                questions = data.questions;
+                quizId = data.quizId;
+                currentQ = 0; answers = {};
+                document.getElementById('quiz-title').textContent = role + ' Quiz';
+                document.getElementById('setup-phase').classList.add('hidden');
+                document.getElementById('quiz-phase').classList.remove('hidden');
+                renderQuestion();
+            } catch (e) { showToast(e.message, 'error'); setLoading(btn, false, 'Generate Quiz'); }
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQ];
+            const total = questions.length;
+            document.getElementById('quiz-timer').textContent = `Q ${currentQ + 1} of ${total}`;
+            document.getElementById('quiz-progress-text').textContent = `Question ${currentQ + 1} of ${total}`;
+            document.getElementById('progress-bar').style.width = ((currentQ / total) * 100) + '%';
+            document.getElementById('next-btn').disabled = !answers[currentQ];
+            document.getElementById('skip-btn').style.display = answers[currentQ] ? 'none' : '';
+
+            const container = document.getElementById('question-container');
+            container.innerHTML = `<div class="question-card">
+        <h3>${q.question}</h3>
+        ${q.options.map((opt, i) => {
+                const letter = opt.charAt(0);
+                const isSelected = answers[currentQ] === letter;
+                const isAnswered = !!answers[currentQ];
+                const isCorrect = isAnswered && letter === q.correct;
+                const isWrong = isSelected && letter !== q.correct;
+                let cls = 'option-btn';
+                if (isCorrect) cls += ' correct';
+                else if (isWrong) cls += ' wrong';
+                else if (isSelected) cls += ' selected';
+                return `<button class="${cls}" onclick="selectOption('${letter}')" ${isAnswered ? 'disabled' : ''}>
+            <span class="option-letter">${letter}</span>${opt.substring(2)}
+          </button>`;
+            }).join('')}
+        ${answers[currentQ] ? `<div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:12px;margin-top:12px;font-size:0.875rem;">
+          <strong style="color:#60a5fa">💡 Explanation:</strong> ${q.explanation}
+        </div>` : ''}
+      </div>`;
+        }
+
+        function selectOption(letter) {
+            if (answers[currentQ]) return;
+            answers[currentQ] = letter;
+            document.getElementById('next-btn').disabled = false;
+            document.getElementById('skip-btn').style.display = 'none';
+            renderQuestion();
+        }
+
+        async function nextQuestion() {
+            if (currentQ < questions.length - 1) {
+                currentQ++;
+                renderQuestion();
+            } else {
+                await submitQuiz();
+            }
+        }
+
+        async function submitQuiz() {
+            try {
+                const answerArr = questions.map((_, i) => answers[i] || null);
+                const data = await api('/api/quiz/submit', {
+                    method: 'POST',
+                    body: JSON.stringify({ quizId, answers: answerArr })
+                });
+
+                document.getElementById('quiz-phase').classList.add('hidden');
+                document.getElementById('result-phase').classList.remove('hidden');
+                document.getElementById('progress-bar').style.width = '100%';
+
+                const pct = data.percentage;
+                const color = pct >= 80 ? '#22c55e' : pct >= 60 ? '#f59e0b' : '#ef4444';
+                document.getElementById('result-pct').textContent = pct + '%';
+                document.getElementById('result-circle').style.borderColor = color;
+                document.getElementById('result-circle').style.boxShadow = `0 0 30px ${color}33`;
+                document.getElementById('result-pct').style.color = color;
+                document.getElementById('result-title').textContent = pct >= 80 ? '🎉 Excellent!' : pct >= 60 ? '👍 Good Job!' : '💪 Keep Practicing!';
+                document.getElementById('result-msg').textContent = `You answered ${data.score} out of ${data.total} questions correctly.`;
+
+                // Breakdown
+                const bd = document.getElementById('result-breakdown');
+                bd.innerHTML = questions.map((q, i) => {
+                    const userAns = answers[i] || 'Skipped';
+                    const correct = userAns === q.correct;
+                    return `<div style="padding:8px 12px;border-radius:6px;background:${correct ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)'};border:1px solid ${correct ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'};margin-bottom:6px;font-size:0.8rem;">
+            <strong>${correct ? '✓' : '✗'} Q${i + 1}:</strong> ${q.question.substring(0, 60)}...
+            <span style="color:${correct ? '#4ade80' : '#f87171'}">${correct ? 'Correct' : 'Incorrect (Ans: ' + q.correct + ')'}</span>
+          </div>`;
+                }).join('');
+            } catch (e) { showToast('Error saving results', 'error'); }
+        }
+
+        function resetQuiz() {
+            document.getElementById('result-phase').classList.add('hidden');
+            document.getElementById('setup-phase').classList.remove('hidden');
+            const btn = document.getElementById('generate-btn');
+            btn.disabled = false;
+            btn.textContent = 'Generate Quiz';
+        }
+    </script>
+</body>
+
+</html>

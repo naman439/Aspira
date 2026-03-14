@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Details – Aspira</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <style>
+        .details-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .transcript-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .transcript-line {
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .score-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .score-high {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 2px solid #10b981;
+        }
+
+        .score-med {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 2px solid #f59e0b;
+        }
+
+        .score-low {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 2px solid #ef4444;
+        }
+
+        .feedback-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px dashed var(--border);
+        }
+
+        .insight-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .insight-list li {
+            margin-bottom: 0.5rem;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .insight-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--accent-blue);
+        }
+
+        .insight-list.improvements li::before {
+            color: var(--accent-red);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-pattern"></div>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <div style="width:32px;height:32px" id="nav-logo"></div>Aspira
+        </div>
+        <div class="navbar-actions">
+            <a href="/analytics" class="btn btn-ghost btn-sm">← Analytics</a>
+            <span class="nav-user-name" id="nav-name"></span>
+            <div class="nav-avatar" id="nav-avatar"></div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container" id="content-area">
+            <div style="text-align:center; padding: 4rem;">Loading...</div>
+        </div>
+    </main>
+
+    <script src="/js/shared.js"></script>
+    <script>
+        document.getElementById('nav-logo').innerHTML = LOGO_SVG;
+
+        (async () => {
+            const user = await checkAuth('/sign-in');
+            buildNav(user);
+            loadInterview();
+        })();
+
+        async function loadInterview() {
+            const id = new URLSearchParams(window.location.search).get('id');
+            if (!id) {
+                window.location.href = '/analytics';
+                return;
+            }
+
+            try {
+                const res = await api(`/api/interview/${id}`);
+                renderDetails(res.interview);
+            } catch (e) {
+                document.getElementById('content-area').innerHTML = '<div class="card text-center" style="margin-top:2rem"><h3 style="color:var(--accent-red)">Interview not found or unauthorized.</h3><br><a href="/analytics" class="btn btn-secondary">Go Back</a></div>';
+            }
+        }
+
+        function getScoreClass(score) {
+            if (score >= 80) return 'score-high';
+            if (score >= 60) return 'score-med';
+            return 'score-low';
+        }
+
+        function renderDetails(interview) {
+            if (!interview.feedback) {
+                document.getElementById('content-area').innerHTML = `
+                    <div style="margin-bottom: 2rem;">
+                        <h1>${interview.role} Interview</h1>
+                        <p class="text-muted">Incomplete session. No feedback available.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const feedback = interview.feedback;
+            const strengthsHtml = feedback.strengths ? feedback.strengths.map(s => `<li>${s}</li>`).join('') : '<li>No strengths noted</li>';
+            const improvementsHtml = feedback.improvements ? feedback.improvements.map(i => `<li>${i}</li>`).join('') : '<li>No improvements noted</li>';
+
+            // Format transcript loosely. Expected format from API is a block of text, 
+            // but we can replace double newlines with paragraphs, or standard "Interviewer:" / "You:" patterns.
+            let formattedTranscript = interview.transcript || '';
+            formattedTranscript = formattedTranscript
+                .replace(/Interviewer:/g, '<strong style="color:var(--accent-blue)">Interviewer:</strong>')
+                .replace(/You:/g, '<strong style="color:var(--text-light)">You:</strong>')
+                .replace(/\\n/g, '<br>');
+
+            document.getElementById('content-area').innerHTML = `
+                <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <h1>${interview.role} Interview</h1>
+                        <p class="text-muted">${interview.level} · ${new Date(interview.created_at).toLocaleString()}</p>
+                    </div>
+                    <div class="score-pill ${getScoreClass(feedback.score)}">${feedback.score}</div>
+                </div>
+
+                <div class="details-grid">
+                    <div>
+                        <h3>Interview Transcript</h3>
+                        <div class="transcript-box" style="margin-top:1rem;">
+                            ${formattedTranscript || '<p class="text-muted">Transcript not available</p>'}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="card">
+                            <h3>Overall Feedback</h3>
+                            <p style="margin-top:0.5rem; line-height: 1.6; font-size: 0.95rem;">${feedback.overallFeedback}</p>
+
+                            <div class="feedback-section">
+                                <h4 style="margin-bottom:0.5rem">Key Strengths</h4>
+                                <ul class="insight-list">${strengthsHtml}</ul>
+                            </div>
+
+                            <div class="feedback-section">
+                                <h4 style="margin-bottom:0.5rem">Areas for Improvement</h4>
+                                <ul class="insight-list improvements">${improvementsHtml}</ul>
+                            </div>
+                            
+                            <div class="feedback-section">
+                                <h4 style="margin-bottom:1rem">Detailed Scores</h4>
+                                <div style="display:flex; justify-content: space-between; margin-bottom:0.5rem">
+                                    <span>Soft Skills</span>
+                                    <strong>${interview.soft_skills_score || 0}/100</strong>
+                                </div>
+                                <div style="display:flex; justify-content: space-between;">
+                                    <span>Technical Skills</span>
+                                    <strong>${interview.tech_skills_score || 0}/100</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+
+</html>

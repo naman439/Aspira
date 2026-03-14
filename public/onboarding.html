@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onboarding – Aspira</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <div class="bg-pattern"></div>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <div style="width:32px;height:32px" id="nav-logo"></div>Aspira
+        </div>
+        <div class="navbar-actions">
+            <a href="/dashboard" class="btn btn-ghost btn-sm">Skip for now →</a>
+        </div>
+    </nav>
+    <main class="main-content">
+        <div class="onboarding-wrapper">
+            <div class="onboarding-steps">
+                <div class="step-dot done"></div>
+                <div class="step-connector"></div>
+                <div class="step-dot active"></div>
+                <div class="step-connector"></div>
+                <div class="step-dot"></div>
+            </div>
+            <h1 class="mb-2">Welcome to Aspira!</h1>
+            <p class="mb-6">Let's personalize your experience so we can provide the best interview practice.</p>
+
+            <div class="onboarding-card">
+                <h3 class="mb-6">Tell us about yourself</h3>
+                <div class="form-group mb-4">
+                    <label>Your Industry</label>
+                    <select id="industry">
+                        <option value="">Select an industry...</option>
+                        <option value="software">Software Engineering</option>
+                        <option value="data">Data Science / AI / ML</option>
+                        <option value="product">Product Management</option>
+                        <option value="design">UX / Design</option>
+                        <option value="devops">DevOps / Cloud</option>
+                        <option value="security">Cybersecurity</option>
+                        <option value="finance">Finance / FinTech</option>
+                        <option value="marketing">Marketing / Growth</option>
+                        <option value="healthcare">Healthcare / MedTech</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group mb-4">
+                    <label>Years of Experience</label>
+                    <select id="experience">
+                        <option value="0-1">0–1 years (Fresh Graduate)</option>
+                        <option value="1-3">1–3 years (Early Career)</option>
+                        <option value="3-5">3–5 years (Mid-level)</option>
+                        <option value="5-10">5–10 years (Senior)</option>
+                        <option value="10+">10+ years (Expert / Lead)</option>
+                    </select>
+                </div>
+                <div class="form-group mb-6">
+                    <label>Current Goal</label>
+                    <select id="goal">
+                        <option value="new-job">Looking for a new job</option>
+                        <option value="promotion">Seeking a promotion</option>
+                        <option value="skills">Improving interview skills</option>
+                        <option value="practice">Regular practice</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary btn-lg w-full" onclick="completeOnboarding()">Get Started →</button>
+            </div>
+        </div>
+    </main>
+    <script src="/js/shared.js"></script>
+    <script>
+        document.getElementById('nav-logo').innerHTML = LOGO_SVG;
+        (async () => {
+            await checkAuth('/sign-in');
+        })();
+
+        async function completeOnboarding() {
+            const industry = document.getElementById('industry').value;
+            const experience = document.getElementById('experience').value;
+            const btn = event.target;
+            setLoading(btn, true);
+            try {
+                await api('/api/auth/onboard', { method: 'PUT', body: JSON.stringify({ industry, experience }) });
+                showToast('Profile saved!', 'success');
+                setTimeout(() => { window.location.href = '/dashboard'; }, 800);
+            } catch (e) {
+                setLoading(btn, false, 'Get Started →');
+                showToast(e.message, 'error');
+            }
+        }
+    </script>
+</body>
+
+</html>

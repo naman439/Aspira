@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback – Aspira</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <div class="bg-pattern"></div>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <div style="width:32px;height:32px" id="nav-logo"></div>Aspira
+        </div>
+        <div class="navbar-actions">
+            <a href="/interview" class="btn btn-ghost btn-sm">New Interview</a>
+            <a href="/dashboard" class="btn btn-secondary btn-sm">Dashboard</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container-md" style="padding:2rem 1.5rem;">
+            <h1 class="mb-2">Interview Feedback</h1>
+            <p class="mb-6">Here's your detailed performance analysis</p>
+            <div id="feedback-content">
+                <div style="text-align:center;padding:4rem;"><span class="spinner"
+                        style="width:40px;height:40px;border-width:3px;"></span>
+                    <p class="mt-4">Analyzing your interview...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/shared.js"></script>
+    <script>
+        document.getElementById('nav-logo').innerHTML = LOGO_SVG;
+
+        (async () => {
+            await checkAuth('/sign-in');
+            const feedback = JSON.parse(sessionStorage.getItem('feedback') || 'null');
+            const content = document.getElementById('feedback-content');
+
+            if (!feedback) {
+                content.innerHTML = `<div class="card text-center"><h3>No feedback available</h3><p class="mt-2">Complete an interview first to see your results.</p><a href="/interview" class="btn btn-primary mt-4">Start Interview</a></div>`;
+                return;
+            }
+
+            const scoreColor = feedback.score >= 80 ? '#22c55e' : feedback.score >= 60 ? '#f59e0b' : '#ef4444';
+
+            content.innerHTML = `
+        <div class="feedback-header">
+          <div class="score-circle" style="border-color:${scoreColor};box-shadow:0 0 30px ${scoreColor}33">
+            <div class="score" style="color:${scoreColor}">${feedback.score}</div>
+            <div class="score-label">/ 100</div>
+          </div>
+          <div>
+            <h2>${feedback.score >= 80 ? '🎉 Excellent Performance' : feedback.score >= 60 ? '👍 Good Performance' : '💪 Keep Practicing'}</h2>
+            <p class="mt-2">${feedback.overallFeedback}</p>
+          </div>
+        </div>
+
+        <div class="category-scores">
+          ${Object.entries(feedback.categoryScores || { communication: 0, technical: 0, problemSolving: 0 }).map(([key, val]) => `
+            <div class="category-score-card">
+              <div class="cat-score" style="color:${val >= 80 ? '#22c55e' : val >= 60 ? '#f59e0b' : '#ef4444'}">${val}</div>
+              <div class="cat-label">${key.replace(/([A-Z])/g, ' $1').trim()}</div>
+              <div class="progress-bar-wrapper">
+                <div class="progress-bar"><div class="progress-fill" style="width:${val}%;background:${val >= 80 ? '#22c55e' : val >= 60 ? 'linear-gradient(90deg,#f59e0b,#f97316)' : '#ef4444'}"></div></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;">
+          <div class="card">
+            <h3 class="mb-3" style="color:#4ade80">✅ Strengths</h3>
+            <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
+              ${(feedback.strengths || []).map(s => `<li style="display:flex;gap:8px;font-size:0.875rem"><span style="color:#4ade80;flex-shrink:0">✓</span>${s}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="card">
+            <h3 class="mb-3" style="color:#f59e0b">💡 Areas to Improve</h3>
+            <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
+              ${(feedback.improvements || []).map(i => `<li style="display:flex;gap:8px;font-size:0.875rem"><span style="color:#f59e0b;flex-shrink:0">→</span>${i}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:1rem;justify-content:center;">
+          <a href="/interview" class="btn btn-primary btn-lg">Try Again</a>
+          <a href="/analytics" class="btn btn-secondary btn-lg">View Analytics</a>
+          <a href="/dashboard" class="btn btn-ghost btn-lg">Dashboard</a>
+        </div>`;
+
+            sessionStorage.removeItem('feedback');
+        })();
+    </script>
+</body>
+
+</html>

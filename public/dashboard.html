@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard – Aspira</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <div class="bg-pattern"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <div style="width:32px;height:32px" id="nav-logo"></div>
+            Aspira
+        </div>
+        <div class="navbar-actions">
+            <a href="/tracker" class="btn btn-ghost btn-sm">Job Tracker</a>
+            <a href="/analytics" class="btn btn-ghost btn-sm">Analytics</a>
+            <span class="nav-user-name" id="nav-name"></span>
+            <div class="nav-avatar" id="nav-avatar" onclick="window.location='/settings'" title="Settings"
+                style="cursor:pointer"></div>
+            <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign Out</button>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="dashboard-hero">
+                <h1>Choose Your Path</h1>
+                <p>Select an option to begin your journey</p>
+            </div>
+
+            <div class="path-grid">
+                <!-- AI Voice Interview Card -->
+                <div class="path-card" onclick="window.location='/interview'">
+                    <div class="path-icon">🤖</div>
+                    <h3>AI-Powered Mock Interview</h3>
+                    <p class="subtitle">Experience real interview simulations with an AI interviewer. Answer
+                        role-specific questions and get instant feedback on confidence, clarity, and technical depth.
+                    </p>
+                    <ul class="path-features">
+                        <li>Voice based interviews</li>
+                        <li>Role-specific questions</li>
+                        <li>Real-time AI feedback</li>
+                    </ul>
+                    <button class="btn btn-primary">Start Interview</button>
+                </div>
+
+                <!-- Career Tools Card -->
+                <div class="path-card" onclick="window.location='/analytics'">
+                    <div class="path-icon" style="background:rgba(139,92,246,0.1)">🛠️</div>
+                    <h3>Aspira Career Tools</h3>
+                    <p class="subtitle">Build professional resumes, practice AI-powered mock interviews, and take
+                        role-based MCQ assessments, all enhanced with intelligent feedback.</p>
+                    <ul class="path-features">
+                        <li>Industry Analytics</li>
+                        <li>AI Career ChatBot</li>
+                        <li>AI ATS Checker</li>
+                        <li>MCQ Mock Interview Practice</li>
+                    </ul>
+                    <button class="btn btn-secondary">Explore Tools</button>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div style="margin-top:3rem;">
+                <h3 class="mb-4">Quick Access</h3>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;">
+                    <a href="/tracker" class="card" style="text-align:center;cursor:pointer;text-decoration:none;">
+                        <div style="font-size:1.75rem;margin-bottom:0.5rem;">💼</div>
+                        <div style="font-size:0.875rem;font-weight:600;">Job Tracker</div>
+                        <p style="font-size:0.75rem;margin-top:0.25rem;">Manage applications</p>
+                    </a>
+                    <a href="/analytics" class="card" style="text-align:center;cursor:pointer;text-decoration:none;">
+                        <div style="font-size:1.75rem;margin-bottom:0.5rem;">📊</div>
+                        <div style="font-size:0.875rem;font-weight:600;">Analytics</div>
+                        <p style="font-size:0.75rem;margin-top:0.25rem;">Track performance</p>
+                    </a>
+                    <a href="/ai-chat" class="card" style="text-align:center;cursor:pointer;">
+                        <div style="font-size:1.75rem;margin-bottom:0.5rem;">💬</div>
+                        <div style="font-size:0.875rem;font-weight:600;">AI Career Coach</div>
+                        <p style="font-size:0.75rem;margin-top:0.25rem;">Get career advice</p>
+                    </a>
+                    <a href="/ats-checker" class="card" style="text-align:center;cursor:pointer;">
+                        <div style="font-size:1.75rem;margin-bottom:0.5rem;">⚖️</div>
+                        <div style="font-size:0.875rem;font-weight:600;">ATS Checker</div>
+                        <p style="font-size:0.75rem;margin-top:0.25rem;">Resume Analysis</p>
+                    </a>
+                    <a href="/quiz" class="card" style="text-align:center;cursor:pointer;">
+                        <div style="font-size:1.75rem;margin-bottom:0.5rem;">🧠</div>
+                        <div style="font-size:0.875rem;font-weight:600;">MCQ Quiz</div>
+                        <p style="font-size:0.75rem;margin-top:0.25rem;">Test your skills</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent ATS Analysis -->
+            <div id="ats-history-section" style="margin-top:3rem; display:none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                    <h3>Recent ATS Analysis</h3>
+                    <a href="/ats-checker" class="btn btn-ghost btn-sm">New Check</a>
+                </div>
+                <div id="ats-history-list" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:1.5rem;">
+                    <!-- History items will be injected here -->
+                </div>
+            </div>
+
+            <!-- Ready CTA -->
+            <div style="text-align:center;padding:4rem 0 3rem;border-top:1px solid var(--border);margin-top:3rem;">
+                <h2>Ready to Ace Your Next Interview?</h2>
+                <p style="margin:0.75rem auto 2rem;max-width:500px;">Join thousands of professionals using Aspira to
+                    land their dream job.</p>
+                <a href="/interview" class="btn btn-primary btn-lg">Start Your First Interview</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">© 2025 Aspira by Amber Hasan</footer>
+
+    <script src="/js/shared.js"></script>
+    <script>
+        document.getElementById('nav-logo').innerHTML = LOGO_SVG;
+        (async () => {
+            const user = await checkAuth('/sign-in');
+            buildNav(user);
+
+            // Fetch ATS History
+            try {
+                const response = await fetch('/api/resume/ats-history');
+                const { reports } = await response.json();
+                
+                if (reports && reports.length > 0) {
+                    const section = document.getElementById('ats-history-section');
+                    const list = document.getElementById('ats-history-list');
+                    section.style.display = 'block';
+                    
+                    list.innerHTML = reports.slice(0, 3).map(report => `
+                        <div class="card" onclick="window.location='/ats-checker?reportId=${report.id}'" style="cursor:pointer; transition: transform 0.2s;">
+                            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:1rem;">
+                                <div>
+                                    <div style="font-weight:600; color:var(--text);">${report.resume_name}</div>
+                                    <div style="font-size:0.75rem; color:var(--text-muted);">${report.job_role}</div>
+                                </div>
+                                <div style="background:rgba(16,185,129,0.1); color:#10b981; padding:0.25rem 0.5rem; border-radius:12px; font-weight:700; font-size:0.875rem;">
+                                    ${report.score}%
+                                </div>
+                            </div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">Checked on ${new Date(report.created_at).toLocaleDateString()}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error('Failed to fetch ATS history', err);
+            }
+        })();
+    </script>
+</body>
+
+</html>
