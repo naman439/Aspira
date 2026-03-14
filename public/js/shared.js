@@ -18,6 +18,12 @@ function showToast(message, type = 'info', duration = 3000) {
     }, duration);
 }
 
+// --- API Base URL ---
+// Using Render backend URL for production, localhost for development
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? '' 
+    : 'https://aspira-2h9i.onrender.com';
+
 // --- API Helper ---
 // Supports both (url, options) and (url, method, data) calling conventions
 async function api(endpoint, methodOrOptions = {}, bodyData = null) {
@@ -35,7 +41,11 @@ async function api(endpoint, methodOrOptions = {}, bodyData = null) {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include'
     };
-    const res = await fetch(endpoint, { ...defaults, ...options, headers: { ...defaults.headers, ...(options.headers || {}) } });
+    
+    // Build full URL if needed
+    const fullUrl = endpoint.startsWith('http') ? endpoint : API_BASE_URL + endpoint;
+    
+    const res = await fetch(fullUrl, { ...defaults, ...options, headers: { ...defaults.headers, ...(options.headers || {}) } });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Request failed');
     return data;
