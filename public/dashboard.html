@@ -130,8 +130,7 @@
 
             // Fetch ATS History
             try {
-                const response = await fetch('/api/resume/ats-history');
-                const { reports } = await response.json();
+                const { reports } = await api('/api/resume/ats-history');
                 
                 if (reports && reports.length > 0) {
                     const section = document.getElementById('ats-history-section');

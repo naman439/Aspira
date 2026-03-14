@@ -149,9 +149,10 @@
             let aiText = '';
 
             try {
-                const response = await fetch('/api/chat/message', {
+                const response = await fetch(API_BASE_URL + '/api/chat/message', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ message: msg, chatId: currentChatId })
                 });
 

@@ -422,9 +422,8 @@
             document.getElementById('loading-state').classList.remove('hidden');
 
             try {
-                const response = await fetch('/api/resume/ats-check', {
+                const results = await api('/api/resume/ats-check', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         resumeText: extractedText, 
                         jobRole: role, 
@@ -432,13 +431,6 @@
                         resumeName: currentFileName
                     })
                 });
-
-                const results = await response.json();
-                if (!response.ok) {
-                    showToast(results.error || 'Analysis failed', 'error');
-                    document.getElementById('step-context').classList.remove('hidden');
-                    return;
-                }
 
                 renderReport(results);
             } catch (e) {
@@ -504,16 +496,10 @@
                 document.getElementById('step-upload').classList.add('hidden');
                 document.getElementById('loading-state').classList.remove('hidden');
                 try {
-                    const response = await fetch(`/api/resume/ats-report/${reportId}`);
-                    if (response.ok) {
-                        const results = await response.json();
-                        renderReport(results);
-                    } else {
-                        showToast('Report not found', 'error');
-                        document.getElementById('step-upload').classList.remove('hidden');
-                    }
+                    const results = await api(`/api/resume/ats-report/${reportId}`);
+                    renderReport(results);
                 } catch (err) {
-                    showToast('Failed to load report', 'error');
+                    showToast('Report not found', 'error');
                     document.getElementById('step-upload').classList.remove('hidden');
                 } finally {
                     document.getElementById('loading-state').classList.add('hidden');
