@@ -9,7 +9,14 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-  origin: ['https://aspira-rust.vercel.app', 'http://localhost:3000'],
+  origin: (origin, callback) => {
+    const allowedSubdomain = /\.vercel\.app$/;
+    if (!origin || origin.startsWith('http://localhost') || allowedSubdomain.test(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
