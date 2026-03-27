@@ -7,9 +7,9 @@ const API_CONFIG = {
     BACKEND_URL: 'https://aspira-2h9i.onrender.com'
 };
 
-const API_BASE_URL = window.location.hostname.includes('onrender.com')
-    ? API_CONFIG.BACKEND_URL
-    : '';
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? '' 
+    : API_CONFIG.BACKEND_URL;
 
 console.log(`%c[Aspira] API Targeting Backend: ${API_BASE_URL || "Local Server"}`, "color: #3b82f6; font-weight: bold;");
 

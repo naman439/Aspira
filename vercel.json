@@ -1,27 +1,22 @@
 {
-  "version": 2,
-  "builds": [
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "public": true,
+  "rewrites": [
     {
-      "src": "backend/server.js",
-      "use": "@vercel/node"
+      "source": "/(.*)",
+      "destination": "/frontend/$1"
     }
   ],
-  "routes": [
+  "headers": [
     {
-      "src": "/api/(.*)",
-      "dest": "backend/server.js"
-    },
-    {
-      "src": "/uploads/(.*)",
-      "dest": "backend/server.js"
-    },
-    {
-      "src": "/(css|js|assets)/(.*)",
-      "dest": "/frontend/$1/$2"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "backend/server.js"
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
     }
   ]
 }
