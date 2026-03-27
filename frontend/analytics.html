@@ -6,19 +6,135 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analytics – Aspira</title>
     <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        body { color: white !important; }
+        h1, h2, h3, h4 { color: white !important; }
+        p { color: rgba(255,255,255,0.65) !important; }
+
+        /* ── Stats Grid ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(18px) saturate(180%);
+            -webkit-backdrop-filter: blur(18px) saturate(180%);
+            border: 1.5px solid rgba(255, 255, 255, 0.22);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover { transform: translateY(-3px); }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(255,255,255,0.5) !important;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: white !important;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .stat-sub {
+            font-size: 12px;
+            color: rgba(255,255,255,0.45) !important;
+        }
+
+        /* ── Chart sections ── */
+        .chart-section {
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(18px) saturate(180%);
+            -webkit-backdrop-filter: blur(18px) saturate(180%);
+            border: 1.5px solid rgba(255, 255, 255, 0.22);
+            border-radius: 20px;
+            padding: 1.75rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            margin-top: 0 !important;
+        }
+
+        .chart-section h3 { color: white !important; margin-bottom: 1rem; }
+
+        /* ── Recent activity grid ── */
+        .recent-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .recent-grid > div {
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(18px) saturate(180%);
+            -webkit-backdrop-filter: blur(18px) saturate(180%);
+            border: 1.5px solid rgba(255,255,255,0.22);
+            border-radius: 20px;
+            padding: 1.75rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+
+        /* ── Recent items ── */
+        .recent-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+
+        .recent-item:hover {
+            background: rgba(255, 255, 255, 0.10);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .recent-item h4 { color: white !important; font-size: 14px; margin-bottom: 2px; }
+        .recent-item p { color: rgba(255,255,255,0.55) !important; font-size: 12px; }
+
+        .recent-score {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #60a5fa;
+            min-width: 36px;
+            text-align: right;
+        }
+
+        /* Text muted override */
+        .text-muted { color: rgba(255,255,255,0.5) !important; }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 </head>
 
 <body>
-    <div class="bg-pattern"></div>
+    <div class="video-bg-container">
+        <video autoplay muted loop playsinline class="video-bg">
+            <source src="https://videos.pexels.com/video-files/18069232/18069232-hd_1920_1080_24fps.mp4" type="video/mp4">
+        </video>
+        <div class="video-overlay"></div>
+    </div>
     <nav class="navbar">
         <div class="navbar-brand">
             <div style="width:32px;height:32px" id="nav-logo"></div>Aspira
         </div>
         <div class="navbar-actions">
-            <a href="/dashboard" class="btn btn-ghost btn-sm">← Dashboard</a>
             <span class="nav-user-name" id="nav-name"></span>
             <div class="nav-avatar" id="nav-avatar"></div>
+            <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign Out</button>
         </div>
     </nav>
 
@@ -101,10 +217,8 @@
 
         (async () => {
             const user = await checkAuth('/sign-in');
-            if (user) {
-                document.getElementById('nav-name').textContent = user.name.split(' ')[0];
-                document.getElementById('nav-avatar').textContent = user.name.charAt(0).toUpperCase();
-            }
+            buildNav(user);
+            buildFooter();
             await loadStats();
         })();
 
@@ -112,20 +226,19 @@
             try {
                 const data = await api('/api/dashboard/stats');
 
-                document.getElementById('stat-interviews').textContent = data.stats.totalInterviews;
-                document.getElementById('stat-avg').textContent = data.stats.avgInterviewScore || '—';
-                document.getElementById('stat-quizzes').textContent = data.stats.totalQuizzes;
-                document.getElementById('stat-quiz-avg').textContent = data.stats.avgQuizScore ? data.stats.avgQuizScore + '%' : '—';
+                document.getElementById('stat-interviews').textContent = data.stats.totalInterviews || 0;
+                document.getElementById('stat-avg').textContent = data.stats.avgInterviewScore || 0;
+                document.getElementById('stat-quizzes').textContent = data.stats.totalQuizzes || 0;
+                document.getElementById('stat-quiz-avg').textContent = (data.stats.avgQuizScore || 0) + '%';
 
                 // Charts
                 if (data.chartData && data.chartData.length > 0) {
                     renderChart(data.chartData);
                     renderRadarChart(data.stats.skills);
                 } else {
-                    document.getElementById('performance-chart').parentElement.parentElement.style.display = 'none';
+                    document.getElementById('performance-chart-container').style.display = 'none';
                     document.getElementById('chart-empty').style.display = 'block';
-                    // Also hide radar canvas and show skills empty state
-                    document.getElementById('skills-radar').style.display = 'none';
+                    document.getElementById('skills-radar-container').style.display = 'none';
                     document.getElementById('skills-empty').style.display = 'block';
                 }
 
@@ -163,6 +276,8 @@
                 }
             } catch (e) {
                 console.error(e);
+            } finally {
+                initIcons();
             }
         }
 

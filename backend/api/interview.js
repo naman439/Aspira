@@ -16,24 +16,51 @@ router.post('/generate', requireAuth, async (req, res) => {
     try {
         const { role, level, techStack, type } = req.body;
         const user = req.session.user;
-        
-        const prompt = `Generate 5 ${type || 'technical'} interview questions for a ${level || 'mid'}-level ${role} position.
-    User Industry: ${user.industry || 'Tech'}
-    User Experience Level: ${user.experience || 'Entry-level'}
-    ${techStack ? `Tech stack: ${techStack}.` : ''}
-    Format as JSON array of objects: [{"question": "...", "type": "technical|behavioral", "category": "..."}]
-    Return ONLY JSON.`;
+
+        // Random seed to ensure uniqueness every call (prevents repetition)
+        const randomSeed = Math.floor(Math.random() * 10000);
+        const timestamp = Date.now();
+
+        const levelDescription = level === 'fresher'
+            ? 'Fresher (0 years experience, fresh graduate — ask introductory, foundational and conceptual questions only. No deep implementation. Focus on basics, academic projects, and learning attitude.)'
+            : level === 'junior'
+            ? 'Junior (0–2 years experience — ask practical beginner questions, fundamentals, and simple problem-solving)'
+            : level === 'mid'
+            ? 'Mid-level (2–5 years experience — ask applied questions, system design basics, and moderate coding concepts)'
+            : level === 'senior'
+            ? 'Senior (5+ years — ask architecture, leadership, complex system design and advanced technical decisions)'
+            : 'Lead/Principal (ask strategic decisions, team leadership, architecture trade-offs and scalability)';
+
+        const prompt = `You are an expert technical interviewer. Generate exactly 6 UNIQUE interview questions for the role below.
+
+ROLE: ${role}
+EXPERIENCE LEVEL: ${levelDescription}
+INTERVIEW TYPE: ${type || 'mixed'}
+${techStack ? `TECH STACK FOCUS: ${techStack}` : ''}
+UNIQUE SEED (use this to vary questions): #${randomSeed}-${timestamp}
+
+RULES:
+1. ALL questions must be directly relevant to the "${role}" role.
+2. Questions must match the experience level — NOT too hard for ${level === 'fresher' ? 'a fresher' : 'this level'}.
+3. NO generic or repetitive questions. Each question must be distinctly different.
+4. ${type === 'behavioral' ? 'All questions should be behavioral (STAR format)' : type === 'technical' ? 'All questions should be technical/coding focused' : 'Mix of behavioral and technical questions'}.
+5. Make questions fresh and varied — avoid cliché "tell me about yourself" type questions.
+
+Return ONLY a JSON array: [{"question": "...", "type": "technical|behavioral", "category": "..."}]`;
 
         const completion = await groq.chat.completions.create({
             messages: [{ role: 'user', content: prompt }],
             model: 'llama-3.3-70b-versatile',
-            response_format: { type: 'json_object' }
+            response_format: { type: 'json_object' },
+            temperature: 1.0
         });
 
         const text = completion.choices[0].message.content.trim();
         const data = JSON.parse(text);
         // Sometimes LLMs wrap the array in an object
-        const questions = Array.isArray(data) ? data : (data.questions || Object.values(data)[0]);
+        const questionsRaw = Array.isArray(data) ? data : (data.questions || Object.values(data)[0]);
+        // Shuffle for extra randomness
+        const questions = questionsRaw.sort(() => Math.random() - 0.5);
 
         const id = uuidv4();
         const db = getDb();

@@ -9,106 +9,255 @@
 </head>
 
 <body>
-    <div class="bg-pattern"></div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <div class="video-bg-container">
+        <video autoplay muted loop playsinline class="video-bg">
+            <source src="https://videos.pexels.com/video-files/18069232/18069232-hd_1920_1080_24fps.mp4" type="video/mp4">
+        </video>
+        <div class="video-overlay"></div>
+    </div>
     <nav class="navbar">
         <div class="navbar-brand">
             <div style="width:32px;height:32px" id="nav-logo"></div>Aspira
         </div>
         <div class="navbar-actions">
-            <a href="/dashboard" class="btn btn-ghost btn-sm">← Dashboard</a>
+            <a href="/dashboard" class="btn btn-ghost btn-sm">Dashboard</a>
             <span class="nav-user-name" id="nav-name"></span>
             <div class="nav-avatar" id="nav-avatar"></div>
+            <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign Out</button>
         </div>
     </nav>
 
     <main class="main-content">
-        <div class="container" style="max-width: 600px;">
-            <div style="margin-bottom: 2rem;">
-                <h1>Settings</h1>
-                <p>Manage your profile and account preferences</p>
+        <div class="container" style="max-width: 1000px;">
+            <div style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div>
+                    <h1 class="gradient-text" style="font-size: 40px !important;">My Profile</h1>
+                    <p class="text-muted">Manage your professional identity and track your growth.</p>
+                </div>
+                <button class="btn btn-primary" id="editToggleBtn">
+                    <i data-lucide="edit-3" style="width: 16px; margin-right: 6px;"></i> Edit Profile
+                </button>
             </div>
 
-            <div class="card">
-                <h3>Profile Information</h3>
-                <form id="profileForm" style="margin-top: 1.5rem;">
-                    <div class="form-group">
-                        <label>Full Name</label>
-                        <input type="text" id="name" required>
+            <!-- Profile Header Card -->
+            <div class="glass-card mb-8" style="display: flex; align-items: center; gap: 3rem; padding: 3rem; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px);">
+                <div style="position: relative;">
+                    <div class="avatar-circle" id="avatarPreview" style="width: 140px; height: 140px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.2); color: white; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 800; border-radius: 50%;">NA</div>
+                    <button type="button" class="btn-icon-sm" style="position: absolute; bottom: 5px; right: 5px; background: var(--accent-blue); color: white; border-radius: 50%; width: 38px; height: 38px; display: none; border: 2px solid rgba(255,255,255,0.2); align-items: center; justify-content: center;" id="avatarUploadBtn" onclick="document.getElementById('avatarInput').click()">
+                        <i data-lucide="camera" style="width: 18px;"></i>
+                    </button>
+                    <input type="file" id="avatarInput" accept="image/*" style="display:none">
+                </div>
+                <div style="flex: 1;">
+                    <h2 id="heroName" style="font-size: 36px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.5px;">User Name</h2>
+                    <p id="heroEmail" class="text-muted" style="font-size: 17px; margin-bottom: 18px; opacity: 0.8;">user@example.com</p>
+                    <div style="display: flex; gap: 12px;">
+                        <span class="badge" id="heroIndustry" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.3); padding: 6px 14px; border-radius: 99px; font-weight: 600; font-size: 12px;">Tech</span>
+                        <span class="badge" id="heroExp" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(192, 132, 252, 0.3); padding: 6px 14px; border-radius: 99px; font-weight: 600; font-size: 12px;">Junior</span>
                     </div>
-                    <div class="form-group">
-                        <label>Target Industry</label>
-                        <select id="industry">
-                            <option value="software">Software Engineering</option>
-                            <option value="marketing">Marketing</option>
-                            <option value="design">Product Design</option>
-                            <option value="finance">Finance</option>
-                            <option value="other">Other</option>
-                        </select>
+                </div>
+                <div style="text-align: right; min-width: 200px;">
+                    <div style="font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">Profile Strength</div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="background: rgba(255,255,255,0.05); border-radius:9999px; height:10px; flex: 1; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
+                            <div id="completionBar" style="background: linear-gradient(90deg, #3b82f6, #8b5cf6); height:100%; width:0%; transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
+                        </div>
+                        <span style="font-size: 16px; font-weight: 800; color: #60a5fa;" id="completionPct">0%</span>
                     </div>
-                    <div class="form-group">
-                        <label>Experience level</label>
-                        <select id="experience">
-                            <option value="junior">Junior (0-2 years)</option>
-                            <option value="mid">Mid-level (2-5 years)</option>
-                            <option value="senior">Senior (5+ years)</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Update Profile</button>
-                </form>
+                </div>
             </div>
 
-            <div class="card" style="margin-top: 1.5rem; border-color: var(--accent-red-faint);">
-                <h3 style="color: var(--accent-red)">Danger Zone</h3>
-                <p class="text-muted text-sm">Deleting your account is permanent and cannot be undone.</p>
-                <button class="btn btn-ghost btn-sm" style="color: var(--accent-red); margin-top: 1rem;"
-                    onclick="deleteAccount()">Delete Account</button>
+            <!-- Stats Dashboard -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 3rem;">
+                <div class="glass-card stat-card" style="padding: 2rem 1.5rem; text-align: center; background: rgba(255,255,255,0.03); border-top: 4px solid var(--accent-blue);">
+                    <div style="color: rgba(255,255,255,0.5); font-size: 12px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Interviews</div>
+                    <div style="font-size: 32px; font-weight: 800; color: white;" id="statInterviews">0</div>
+                    <div style="font-size: 11px; color: var(--accent-blue); margin-top: 6px; font-weight: 600;">Practice Sessions</div>
+                </div>
+                <div class="glass-card stat-card" style="padding: 2rem 1.5rem; text-align: center; background: rgba(255,255,255,0.03); border-top: 4px solid var(--accent-green);">
+                    <div style="color: rgba(255,255,255,0.5); font-size: 12px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Avg ATS Score</div>
+                    <div style="font-size: 32px; font-weight: 800; color: white;" id="statAts">0%</div>
+                    <div style="font-size: 11px; color: var(--accent-green); margin-top: 6px; font-weight: 600;">Matching Power</div>
+                </div>
+                <div class="glass-card stat-card" style="padding: 2rem 1.5rem; text-align: center; background: rgba(255,255,255,0.03); border-top: 4px solid var(--accent-purple);">
+                    <div style="color: rgba(255,255,255,0.5); font-size: 12px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Resumes</div>
+                    <div style="font-size: 32px; font-weight: 800; color: white;" id="statResumes">0</div>
+                    <div style="font-size: 11px; color: var(--accent-purple); margin-top: 6px; font-weight: 600;">Built Versions</div>
+                </div>
+                <div class="glass-card stat-card" style="padding: 2rem 1.5rem; text-align: center; background: rgba(255,255,255,0.03); border-top: 4px solid var(--accent-orange);">
+                    <div style="color: rgba(255,255,255,0.5); font-size: 12px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Member For</div>
+                    <div style="font-size: 32px; font-weight: 800; color: white;" id="statDays">0</div>
+                    <div style="font-size: 11px; color: var(--accent-orange); margin-top: 6px; font-weight: 600;">Active Days</div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 2.5rem; align-items: start;">
+                <!-- Main Form Column -->
+                <div id="formColumn">
+                    <form id="profileForm" class="view-mode">
+                        <div style="display: flex; flex-direction: column; gap: 2rem;">
+                            <!-- Personal Section -->
+                            <div class="glass-card" style="padding: 2rem;">
+                                <h3 style="margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; font-size: 20px;">
+                                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(59, 130, 246, 0.1); display: flex; align-items: center; justify-content: center;">
+                                        <i data-lucide="user" style="color: var(--accent-blue); width: 18px;"></i>
+                                    </div>
+                                    Personal Details
+                                </h3>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                                    <div class="form-group">
+                                        <label for="fullName">Full Name</label>
+                                        <input type="text" id="fullName" placeholder="Your Name" required disabled style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="phone">Phone Number</label>
+                                        <input type="tel" id="phone" placeholder="+91..." disabled style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                    </div>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem;">
+                                    <div class="form-group">
+                                        <label>Target Industry</label>
+                                        <div class="custom-select-wrapper" id="industry-wrapper">
+                                            <input type="hidden" id="industry" value="tech">
+                                            <button type="button" class="custom-select-btn" id="industry-btn" onclick="toggleDropdown('industry')" disabled style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                                <span id="industry-display">Tech / Software</span>
+                                                <i data-lucide="chevron-down" style="width: 14px;"></i>
+                                            </button>
+                                            <div class="custom-select-list" id="industry-list">
+                                                <div class="custom-select-item" onclick="selectOptionCustom('industry', 'tech', 'Tech / Software')">Tech / Software</div>
+                                                <div class="custom-select-item" onclick="selectOptionCustom('industry', 'finance', 'Finance / Banking')">Finance / Banking</div>
+                                                <div class="custom-select-item" onclick="selectOptionCustom('industry', 'healthcare', 'Healthcare / Biotech')">Healthcare / Biotech</div>
+                                                <div class="custom-select-item" onclick="selectOptionCustom('industry', 'other', 'Other')">Other</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Experience Level</label>
+                                        <div class="custom-select-wrapper" id="experience-wrapper">
+                                            <input type="hidden" id="experience" value="junior">
+                                            <button type="button" class="custom-select-btn" id="experience-btn" onclick="toggleDropdown('experience')" disabled style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                                <span id="experience-display">Junior (0-2 years)</span>
+                                                <i data-lucide="chevron-down" style="width: 14px;"></i>
+                                            </button>
+                                            <div class="custom-select-list" id="experience-list">
+                                                <div class="custom-select-item" onclick="selectOptionCustom('experience', 'fresher', 'Fresher / Intern')">Fresher / Intern</div>
+                                                <div class="custom-select-item" onclick="selectOptionCustom('experience', 'junior', 'Junior (0-2 years)')">Junior (0-2 years)</div>
+                                                <div class="custom-select-item" onclick="selectOptionCustom('experience', 'mid', 'Mid-level (2-5 years)')">Mid-level (2-5 years)</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-top: 1.5rem;">
+                                    <label for="location">Location / City</label>
+                                    <input type="text" id="location" placeholder="e.g. Mumbai, India" disabled style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                </div>
+                            </div>
+
+                            <!-- Social Section -->
+                            <div class="glass-card" style="padding: 2.5rem;">
+                                <h3 style="margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; font-size: 20px;">
+                                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(34, 211, 238, 0.1); display: flex; align-items: center; justify-content: center;">
+                                        <i data-lucide="globe" style="color: var(--accent-cyan); width: 18px;"></i>
+                                    </div>
+                                    Social & Career Profiles
+                                </h3>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                                    <div class="form-group">
+                                        <label for="github">GitHub</label>
+                                        <input type="url" id="github" placeholder="https://github.com/..." disabled style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="linkedin">LinkedIn</label>
+                                        <input type="url" id="linkedin" placeholder="https://linkedin.com/in/..." disabled style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="portfolio">Portfolio / Website</label>
+                                        <input type="url" id="portfolio" placeholder="https://yourwebsite.com" disabled style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="naukri">Naukri.com</label>
+                                        <input type="url" id="naukri" placeholder="Profile URL" disabled style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="internshala">Internshala</label>
+                                        <input type="url" id="internshala" placeholder="Profile URL" disabled style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="glassdoor">Glassdoor</label>
+                                        <input type="url" id="glassdoor" placeholder="Profile URL" disabled style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="wellfound">Wellfound (AngelList)</label>
+                                        <input type="url" id="wellfound" placeholder="Profile URL" disabled style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="indeed">Indeed</label>
+                                        <input type="url" id="indeed" placeholder="Profile URL" disabled style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="google">Google Careers</label>
+                                        <input type="url" id="google" placeholder="Profile URL" disabled style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="otta">Otta</label>
+                                        <input type="url" id="otta" placeholder="Profile URL" disabled style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="ziprecruiter">ZipRecruiter</label>
+                                        <input type="url" id="ziprecruiter" placeholder="Profile URL" disabled style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bio Section -->
+                            <div class="glass-card" style="padding: 2.5rem;">
+                                <h3 style="margin-bottom: 2rem; display: flex; align-items: center; gap: 10px; font-size: 20px;">
+                                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(251, 146, 60, 0.1); display: flex; align-items: center; justify-content: center;">
+                                        <i data-lucide="file-text" style="color: var(--accent-orange); width: 18px;"></i>
+                                    </div>
+                                    Professional Bio
+                                </h3>
+                                <div class="form-group">
+                                    <textarea id="bio" maxlength="500" placeholder="Tell us about yourself..." style="width: 100%; min-height: 120px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 1rem; border-radius: 12px; transition: all 0.3s ease;" disabled></textarea>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" id="saveBtn" style="display: none; width: 100%; padding: 1.25rem; font-weight: 800; font-size: 16px; letter-spacing: 0.5px; box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);">Save Profile Changes</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Recent Activity Column -->
+                <div id="activityColumn">
+                    <div class="glass-card" style="padding: 2.5rem; display: flex; flex-direction: column; background: rgba(255,255,255,0.06);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;">
+                            <h3 style="display: flex; align-items: center; gap: 10px; font-size: 18px;">
+                                <i data-lucide="clock" style="color: var(--accent-purple); width: 18px;"></i>
+                                Activity Feed
+                            </h3>
+                            <a href="/dashboard" style="font-size: 12px; color: var(--accent-purple); text-decoration: none; font-weight: 700; opacity: 0.8;">View All</a>
+                        </div>
+                        <div id="activityFeed" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                            <!-- Activity items mapped here -->
+                        </div>
+                    </div>
+
+                    <!-- Danger Zone (Below Activity) -->
+                    <div class="glass-card" style="margin-top: 2rem; padding: 2rem; border: 1px solid rgba(248, 113, 113, 0.2); background: rgba(239, 68, 68, 0.04);">
+                        <h3 style="color: #f87171; font-size: 16px; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="shield-alert" style="width: 18px;"></i>
+                            Danger Zone
+                        </h3>
+                        <p style="font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 1.5rem; line-height: 1.6;">Deleting your account is permanent. All your data, resumes, and interview history will be wiped.</p>
+                        <button type="button" class="btn btn-danger btn-sm" style="width: 100%; font-weight: 800; padding: 0.75rem;" onclick="confirmDelete()">Delete Account</button>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 
     <script src="/js/shared.js"></script>
-    <script>
-        document.getElementById('nav-logo').innerHTML = LOGO_SVG;
-        let currentUser;
-
-        (async () => {
-            currentUser = await checkAuth('/sign-in');
-            buildNav(currentUser);
-            if (currentUser) {
-                document.getElementById('name').value = currentUser.name;
-                document.getElementById('industry').value = currentUser.industry || 'software';
-                document.getElementById('experience').value = currentUser.experience || 'junior';
-            }
-        })();
-
-        document.getElementById('profileForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const data = {
-                name: document.getElementById('name').value,
-                industry: document.getElementById('industry').value,
-                experience: document.getElementById('experience').value
-            };
-            try {
-                // Shared API mock or real endpoint
-                await api('/api/auth/me', 'PUT', data);
-                toast('Profile updated successfully');
-                // Refresh local session storage or similar if needed
-                setTimeout(() => window.location.reload(), 1500);
-            } catch (e) {
-                toast('Failed to update profile');
-            }
-        });
-
-        async function deleteAccount() {
-            if (!confirm('Are you ABSOLUTELY sure? This will delete all your data.')) return;
-            try {
-                await api('/api/auth/me', 'DELETE');
-                window.location.href = '/';
-            } catch (e) {
-                toast('Failed to delete account');
-            }
-        }
-    </script>
+    <script src="/js/settings.js?v=0.1.2"></script>
 </body>
-
 </html>

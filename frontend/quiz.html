@@ -6,18 +6,133 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MCQ Quiz – Aspira</title>
     <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        body { color: white !important; }
+        h1, h2, h3 { color: white !important; }
+        p { color: rgba(255,255,255,0.65) !important; }
+
+        /* Setup card — uses global .card styles */
+
+        /* Option buttons and Letters */
+        .option-btn {
+            background: var(--bg-glass-light) !important;
+            border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+            box-shadow: var(--glass-inner-light) !important;
+            border-radius: var(--radius-md) !important;
+            transition: var(--transition) !important;
+            color: white !important;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-color: rgba(255, 255, 255, 0.35) !important;
+        }
+
+        .option-btn.selected {
+            background: rgba(59, 130, 246, 0.15) !important;
+            border-color: rgba(59, 130, 246, 0.6) !important;
+        }
+
+        .option-letter {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .quiz-progress {
+            background: var(--bg-glass-heavy) !important;
+            border: 1px solid var(--border) !important;
+            height: 8px !important;
+        }
+
+        /* Feedback States */
+        .option-btn.correct {
+            background: rgba(34, 197, 94, 0.2) !important;
+            border-color: rgba(34, 197, 94, 0.6) !important;
+            color: #4ade80 !important;
+        }
+
+        .option-btn.wrong {
+            background: rgba(239, 68, 68, 0.2) !important;
+            border-color: rgba(239, 68, 68, 0.6) !important;
+            color: #f87171 !important;
+        }
+
+        .timer-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-family: monospace;
+            font-weight: 700;
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .timer-warning {
+            color: #ef4444 !important;
+            border-color: #ef4444 !important;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .quiz-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+
+        /* Result circle */
+        .result-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            background: rgba(15,23,42,0.8);
+        }
+
+        .result-score { font-size: 2rem; font-weight: 800; }
+        .result-label { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+        .quiz-result { text-align: center; }
+        .quiz-result h2, .quiz-result p { color: white !important; }
+    </style>
 </head>
 
 <body>
-    <div class="bg-pattern"></div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <div class="video-bg-container">
+        <video autoplay muted loop playsinline class="video-bg">
+            <source src="https://videos.pexels.com/video-files/18069232/18069232-hd_1920_1080_24fps.mp4" type="video/mp4">
+        </video>
+        <div class="video-overlay"></div>
+    </div>
     <nav class="navbar">
         <div class="navbar-brand">
             <div style="width:32px;height:32px" id="nav-logo"></div>Aspira
         </div>
         <div class="navbar-actions">
-            <a href="/dashboard" class="btn btn-ghost btn-sm">← Dashboard</a>
+            <a href="/dashboard" class="btn btn-ghost btn-sm">Dashboard</a>
             <span class="nav-user-name" id="nav-name"></span>
             <div class="nav-avatar" id="nav-avatar"></div>
+            <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign Out</button>
         </div>
     </nav>
 
@@ -26,29 +141,75 @@
             <!-- Setup phase -->
             <div id="setup-phase">
                 <div class="page-header" style="text-align:left;padding-top:1rem;">
-                    <h1>🧠 Technical Assessment</h1>
+                    <h1 class="gradient-text" style="font-size: 40px !important;">Technical Assessment</h1>
                     <p>AI-generated role-based MCQ quizzes with detailed explanations</p>
                 </div>
-                <div class="card">
-                    <h3 class="mb-6">Configure Your Quiz</h3>
+                <div class="card card-hover-glow">
+                    <h3 class="mb-6"><i data-lucide="brain-circuit" style="width: 20px; vertical-align: middle; margin-right: 8px;"></i> Configure Your Quiz</h3>
+
+                    <!-- Job Role: Custom inline dropdown -->
                     <div class="form-group mb-4">
-                        <label>Job Role</label>
-                        <input type="text" id="q-role" placeholder="e.g. Frontend Developer, Data Scientist">
+                        <label><i data-lucide="briefcase" style="width: 14px; margin-right: 4px;"></i> Job Role</label>
+                        <div class="custom-select-wrapper" id="role-wrapper">
+                            <input type="hidden" id="q-role" value="">
+                            <button type="button" class="custom-select-btn" id="q-role-btn" onclick="toggleDropdown('role')">
+                                <span id="q-role-display">Select a role...</span>
+                                <span class="chevron">▼</span>
+                            </button>
+                            <div class="custom-select-list" id="q-role-list">
+                                <div class="custom-select-item" onclick="selectRoleCustom('Software Engineer')">Software Engineer</div>
+                                <div class="custom-select-item" onclick="selectRoleCustom('Frontend Developer')">Frontend Developer</div>
+                                <div class="custom-select-item" onclick="selectRoleCustom('Backend Developer')">Backend Developer</div>
+                                <div class="custom-select-item" onclick="selectRoleCustom('Full Stack Developer')">Full Stack Developer</div>
+                                <div class="custom-select-item" onclick="selectRoleCustom('Mobile App Developer')">Mobile App Developer</div>
+                                <div class="custom-select-item" onclick="selectRoleCustom('Data Scientist')">Data Scientist</div>
+                                <div class="custom-select-item" onclick="selectRoleCustom('DevOps Engineer')">DevOps Engineer</div>
+                                <div class="custom-select-item" onclick="selectRoleCustom('UI/UX Designer')">UI/UX Designer</div>
+                                <div class="custom-select-item" onclick="selectRoleCustom('Product Manager')">Product Manager</div>
+                                <div class="custom-select-item" onclick="selectRoleCustom('QA / Test Engineer')">QA / Test Engineer</div>
+                                <div class="custom-select-item" onclick="selectRoleCustom('System Architect')">System Architect</div>
+                                <div class="custom-select-item" onclick="selectRoleCustom('Cybersecurity Engineer')">Cybersecurity Engineer</div>
+                                <div class="custom-select-item" onclick="selectRoleCustom('Cloud Engineer')">Cloud Engineer</div>
+                                <div class="custom-select-item" onclick="selectRoleCustom('AI / ML Engineer')">AI / ML Engineer</div>
+                                <div class="custom-select-item" onclick="selectRoleCustom('Other')">Other / Custom Role</div>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Focus Area: native select (few options, auto-populated) -->
                     <div class="form-group mb-4">
-                        <label>Focus Area / Skill</label>
-                        <input type="text" id="q-skill" placeholder="e.g. React, Python, SQL, System Design">
+                        <label><i data-lucide="cpu" style="width: 14px; margin-right: 4px;"></i> Focus Area / Skill</label>
+                        <div class="custom-select-wrapper" id="skill-wrapper">
+                            <input type="hidden" id="q-skill" value="">
+                            <button type="button" class="custom-select-btn" id="q-skill-btn" onclick="toggleDropdown('skill')">
+                                <span id="q-skill-display">Select a job role first...</span>
+                                <span class="chevron">▼</span>
+                            </button>
+                            <div class="custom-select-list" id="q-skill-list">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
                     </div>
+
                     <div class="form-group mb-6">
-                        <label>Number of Questions</label>
-                        <select id="q-count">
-                            <option value="5">5 Questions (Quick)</option>
-                            <option value="10" selected>10 Questions (Standard)</option>
-                            <option value="15">15 Questions (Comprehensive)</option>
-                        </select>
+                        <label><i data-lucide="list-checks" style="width: 14px; margin-right: 4px;"></i> Number of Questions</label>
+                        <div class="custom-select-wrapper" id="count-wrapper">
+                            <input type="hidden" id="q-count" value="10">
+                            <button type="button" class="custom-select-btn has-value" id="q-count-btn" onclick="toggleDropdown('count')">
+                                <span id="q-count-display">10 Questions (Standard)</span>
+                                <span class="chevron">▼</span>
+                            </button>
+                            <div class="custom-select-list" id="q-count-list">
+                                <div class="custom-select-item" onclick="selectOptionCustom('count', '5', '5 Questions (Quick)')">5 Questions (Quick)</div>
+                                <div class="custom-select-item selected" onclick="selectOptionCustom('count', '10', '10 Questions (Standard)')">10 Questions (Standard)</div>
+                                <div class="custom-select-item" onclick="selectOptionCustom('count', '15', '15 Questions (Comprehensive)')">15 Questions (Comprehensive)</div>
+                                <div class="custom-select-item" onclick="selectOptionCustom('count', '20', '20 Questions (Pro)')">20 Questions (Pro)</div>
+                                <div class="custom-select-item" onclick="selectOptionCustom('count', '25', '25 Questions (Expert)')">25 Questions (Expert)</div>
+                                <div class="custom-select-item" onclick="selectOptionCustom('count', '30', '30 Questions (Ultimate)')">30 Questions (Ultimate)</div>
+                            </div>
+                        </div>
                     </div>
-                    <button class="btn btn-primary btn-lg w-full" id="generate-btn" onclick="generateQuiz()">Generate
-                        Quiz</button>
+                    <button class="btn btn-primary btn-lg w-full" id="generate-btn" onclick="generateQuiz()">Generate Quiz</button>
                 </div>
             </div>
 
@@ -59,7 +220,10 @@
                         <h2 id="quiz-title">Quiz</h2>
                         <p id="quiz-progress-text" class="text-sm text-muted"></p>
                     </div>
-                    <span class="badge badge-blue" id="quiz-timer">Q 1 of 10</span>
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <div id="quiz-timer-display" class="timer-badge">00:00</div>
+                        <span class="badge badge-blue" id="quiz-timer">Q 1 of 10</span>
+                    </div>
                 </div>
                 <div class="quiz-progress">
                     <div class="quiz-progress-bar" id="progress-bar" style="width:0%"></div>
@@ -95,6 +259,25 @@
     <script>
         document.getElementById('nav-logo').innerHTML = LOGO_SVG;
         let questions = [], currentQ = 0, answers = {}, quizId = null;
+        let timeLeft = 0, timerInterval = null;
+
+        const FOCUS_AREAS = {
+            'Software Engineer': ['Data Structures', 'Algorithms', 'System Design', 'Core Programming', 'Software Dev Life Cycle'],
+            'Frontend Developer': ['HTML/CSS', 'JavaScript/ES6+', 'React.js', 'Vue.js', 'State Management', 'Web Performance'],
+            'Backend Developer': ['Node.js', 'Python/Django', 'Java/Spring', 'Database Design (SQL)', 'API Architecture', 'Caching Strategies'],
+            'Full Stack Developer': ['Frontend Frameworks', 'API Development', 'Database Management', 'Authentication/Security', 'DevOps Basics'],
+            'Mobile App Developer': ['React Native', 'Flutter', 'Swift (iOS)', 'Kotlin (Android)', 'Mobile UI Patterns', 'App Store Deployment'],
+            'Data Scientist': ['Machine Learning', 'Statistics', 'Data Visualization', 'Big Data Tools', 'Deep Learning', 'Data Cleaning'],
+            'DevOps Engineer': ['CI/CD Pipelines', 'Docker & Kubernetes', 'Cloud Infrastructure', 'Monitoring/Logging', 'Infrastructure as Code'],
+            'UI/UX Designer': ['User Research', 'Wireframing', 'Prototyping', 'Design Systems', 'Usability Testing', 'Visual Design Theory'],
+            'Product Manager': ['Product Strategy', 'Agile/Scrum', 'Market Research', 'KPI Tracking', 'Stakeholder Management', 'User Stories'],
+            'QA / Test Engineer': ['Manual Testing', 'Automation Frameworks', 'Integration Testing', 'Performance Testing', 'Bug Life Cycle', 'Selenium/Cypress'],
+            'System Architect': ['Distributed Systems', 'Microservices', 'Scalability Patterns', 'Security Architecture', 'Cloud-Native Design', 'Disaster Recovery'],
+            'Cybersecurity Engineer': ['Network Security', 'Penetration Testing', 'Cryptography', 'Identity Management', 'Incident Response', 'Compliance'],
+            'Cloud Engineer': ['AWS/Azure/GCP', 'Cloud Security', 'Serverless Architecture', 'Cost Optimization', 'Virtualization'],
+            'AI / ML Engineer': ['Neural Networks', 'NLP', 'Computer Vision', 'MLOps', 'Model Evaluation', 'Vector Databases'],
+            'Other': ['General Logic', 'Communication Skills', 'Project Management', 'Problem Solving', 'Technical Foundations']
+        };
 
         (async () => {
             const user = await checkAuth('/sign-in');
@@ -102,17 +285,88 @@
                 document.getElementById('nav-name').textContent = user.name.split(' ')[0];
                 document.getElementById('nav-avatar').textContent = user.name.charAt(0).toUpperCase();
             }
+            buildFooter();
+            initIcons();
         })();
 
+        // ── Custom Dropdown Logic ──
+        function toggleDropdown(id) {
+            const list = document.getElementById(`q-${id}-list`);
+            const btn = document.getElementById(`q-${id}-btn`);
+            const isOpen = list.classList.contains('open');
+
+            // Close all others
+            document.querySelectorAll('.custom-select-list').forEach(l => l.classList.remove('open'));
+            document.querySelectorAll('.custom-select-btn').forEach(b => b.classList.remove('open'));
+
+            if (!isOpen) {
+                list.classList.add('open');
+                btn.classList.add('open');
+            }
+        }
+
+        function selectRoleCustom(role) {
+            document.getElementById('q-role').value = role;
+            document.getElementById('q-role-display').textContent = role;
+            document.getElementById('q-role-btn').classList.add('has-value');
+
+            // Update selection state
+            const list = document.getElementById('q-role-list');
+            list.querySelectorAll('.custom-select-item').forEach(item => {
+                item.classList.toggle('selected', item.textContent === role);
+            });
+
+            toggleDropdown('role'); // Close
+            updateFocusAreasCustom(role);
+        }
+
+        function updateFocusAreasCustom(role) {
+            const skillDisplay = document.getElementById('q-skill-display');
+            const skillList = document.getElementById('q-skill-list');
+            const skillInput = document.getElementById('q-skill');
+            const btn = document.getElementById('q-skill-btn');
+
+            const areas = FOCUS_AREAS[role] || FOCUS_AREAS['Other'];
+
+            // Clear display
+            skillDisplay.textContent = 'Select a focus area...';
+            skillInput.value = '';
+            btn.classList.remove('has-value');
+
+            // Populate list
+            skillList.innerHTML = areas.map(area =>
+                `<div class="custom-select-item" onclick="selectOptionCustom('skill', '${area}', '${area}')">${area}</div>`
+            ).join('');
+        }
+
+        function selectOptionCustom(id, value, display) {
+            document.getElementById(`q-${id}`).value = value;
+            document.getElementById(`q-${id}-display`).textContent = display;
+            document.getElementById(`q-${id}-btn`).classList.add('has-value');
+
+            // Update selection state
+            const list = document.getElementById(`q-${id}-list`);
+            list.querySelectorAll('.custom-select-item').forEach(item => {
+                item.classList.toggle('selected', item.getAttribute('onclick').includes(`'${value}'`));
+            });
+
+            toggleDropdown(id); // Close
+        }
+
         async function generateQuiz() {
-            const role = document.getElementById('q-role').value.trim();
-            if (!role) return showToast('Please enter a job role', 'error');
+            const role = document.getElementById('q-role').value;
+            const skill = document.getElementById('q-skill').value;
+            const count = document.getElementById('q-count').value;
+
+            if (!role) return showToast('Please select a job role', 'error');
+            if (!skill) return showToast('Please select a focus area', 'error');
+
             const btn = document.getElementById('generate-btn');
             setLoading(btn, true);
             try {
                 const data = await api('/api/quiz/generate', {
                     method: 'POST',
-                    body: JSON.stringify({ role, skill: document.getElementById('q-skill').value, count: parseInt(document.getElementById('q-count').value) })
+                    body: JSON.stringify({ role, skill, count: parseInt(count) })
                 });
                 questions = data.questions;
                 quizId = data.quizId;
@@ -120,8 +374,44 @@
                 document.getElementById('quiz-title').textContent = role + ' Quiz';
                 document.getElementById('setup-phase').classList.add('hidden');
                 document.getElementById('quiz-phase').classList.remove('hidden');
+                
+                // Start Timer (1 min per question)
+                startTimer(parseInt(count) * 60);
+                
                 renderQuestion();
             } catch (e) { showToast(e.message, 'error'); setLoading(btn, false, 'Generate Quiz'); }
+        }
+
+        // ── Timer Logic ──
+        function startTimer(seconds) {
+            timeLeft = seconds;
+            updateTimerDisplay();
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    showToast('Time is up! Submitting quiz...', 'warning');
+                    submitQuiz();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const display = document.getElementById('quiz-timer-display');
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            display.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            // Re-check timer-warning state
+            if (timeLeft < 60) display.classList.add('timer-warning');
+            else display.classList.remove('timer-warning');
+        }
+
+        function stopTimer() {
+            if (timerInterval) clearInterval(timerInterval);
         }
 
         function renderQuestion() {
@@ -173,6 +463,14 @@
             }
         }
 
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.custom-select-wrapper')) {
+                document.querySelectorAll('.custom-select-list').forEach(l => l.classList.remove('open'));
+                document.querySelectorAll('.custom-select-btn').forEach(b => b.classList.remove('open'));
+            }
+        });
+
         async function submitQuiz() {
             try {
                 const answerArr = questions.map((_, i) => answers[i] || null);
@@ -181,6 +479,7 @@
                     body: JSON.stringify({ quizId, answers: answerArr })
                 });
 
+                stopTimer(); // Stop timer on submission
                 document.getElementById('quiz-phase').classList.add('hidden');
                 document.getElementById('result-phase').classList.remove('hidden');
                 document.getElementById('progress-bar').style.width = '100%';

@@ -5,7 +5,32 @@ const { getDb } = require('./db');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const GitHubStrategy = require('passport-github2').Strategy;
+const multer = require('multer');
+const path = require('path');
 const router = express.Router();
+
+// Multer Config for Avatars
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, path.join(__dirname, '..', 'uploads', 'avatars'));
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only images are allowed'));
+        }
+    }
+});
 
 // ============================================================
 // PASSPORT CONFIGURATION
@@ -38,8 +63,8 @@ function findOrCreateOAuthUser(provider, providerId, email, name) {
     // 3. Create brand-new user
     const id = uuidv4();
     db.prepare(
-        "INSERT INTO users (id, name, email, provider, provider_id) VALUES (?, ?, ?, ?, ?)"
-    ).run(id, name, email || null, provider, providerId);
+        "INSERT INTO users (id, name, full_name, email, provider, provider_id) VALUES (?, ?, ?, ?, ?, ?)"
+    ).run(id, name, name, email || null, provider, providerId);
     return db.prepare('SELECT * FROM users WHERE id = ?').get(id);
 }
 
@@ -92,21 +117,43 @@ passport.deserializeUser((id, done) => {
 });
 
 // ============================================================
-// HELPER: Set session from DB user row
+// HELPER: Set session from DB user row (Always fresh)
 // ============================================================
 function setSession(req, dbUser) {
+    if (!dbUser) return null;
+    
     const userObj = {
         id: dbUser.id,
-        name: dbUser.name,
-        email: dbUser.email,
-        isPro: 1, // Treat everyone as Pro now
+        name: dbUser.full_name || dbUser.name || '',
+        fullName: dbUser.full_name || dbUser.name || '',
+        email: dbUser.email || '',
+        isPro: 1, 
         plan: 'pro',
-        industry: dbUser.industry,
-        experience: dbUser.experience,
-        provider: dbUser.provider
+        industry: dbUser.industry || '',
+        experience: dbUser.experience || '',
+        bio: dbUser.bio || '',
+        skills: dbUser.skills || '',
+        phone: dbUser.phone || '',
+        location: dbUser.location || '',
+        currentTitle: dbUser.current_title || '',
+        avatarUrl: dbUser.avatar_url || '',
+        github_url: dbUser.github_url || '',
+        linkedin_url: dbUser.linkedin_url || '',
+        portfolio_url: dbUser.portfolio_url || '',
+        naukri_url: dbUser.naukri_url || '',
+        internshala_url: dbUser.internshala_url || '',
+        glassdoor_url: dbUser.glassdoor_url || '',
+        wellfound_url: dbUser.wellfound_url || '',
+        indeed_url: dbUser.indeed_url || '',
+        provider: dbUser.provider || 'email'
     };
+    
     req.session.userId = dbUser.id;
     req.session.user = userObj;
+    
+    // Explicitly save the session to ensure persistence before responding
+    req.session.save();
+    
     return userObj;
 }
 
@@ -177,7 +224,7 @@ router.post('/signup', async (req, res) => {
 
         const hashed = await bcrypt.hash(password, 10);
         const id = uuidv4();
-        db.prepare("INSERT INTO users (id, name, email, password, provider) VALUES (?, ?, ?, ?, 'email')").run(id, name, email, hashed);
+        db.prepare("INSERT INTO users (id, name, full_name, email, password, provider) VALUES (?, ?, ?, ?, ?, 'email')").run(id, name, name, email, hashed);
 
         const user = { id, name, email, isPro: 1, plan: 'pro', provider: 'email' };
         req.session.userId = id;
@@ -218,44 +265,198 @@ router.post('/signout', (req, res) => {
 
 // GET /api/auth/me
 router.get('/me', (req, res) => {
-    if (!req.session.user) return res.status(401).json({ error: 'Not authenticated' });
-    res.json({ user: req.session.user });
+    const userId = req.session.userId || (req.user ? req.user.id : null);
+    if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+    
+    try {
+        const db = getDb();
+        const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+        if (!user) return res.status(401).json({ error: 'User not found' });
+        
+        // Always reconstruct user object from DB to avoid staleness
+        const userObj = setSession(req, user);
+        res.json({ user: userObj });
+    } catch (e) {
+        console.error('Error in /me:', e);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// DEBUG: Check session status (Remove in production)
+router.get('/debug', (req, res) => {
+    res.json({
+        hasSession: !!req.session,
+        userId: req.session.userId,
+        sessionUser: req.session.user,
+        passportUser: req.user,
+        cookies: req.headers.cookie
+    });
 });
 
 // PUT /api/auth/onboard
 router.put('/onboard', (req, res) => {
-    if (!req.session.user) return res.status(401).json({ error: 'Not authenticated' });
+    if (!req.session.userId && !req.user) return res.status(401).json({ error: 'Not authenticated' });
+    const userId = req.session.userId || req.user.id;
     const { industry, experience } = req.body;
     const db = getDb();
-    db.prepare('UPDATE users SET industry = ?, experience = ? WHERE id = ?').run(industry, experience, req.session.user.id);
-    req.session.user.industry = industry;
-    req.session.user.experience = experience;
-    res.json({ success: true });
+    db.prepare('UPDATE users SET industry = ?, experience = ? WHERE id = ?').run(industry, experience, userId);
+    
+    // Refresh session
+    const updated = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+    setSession(req, updated);
+    req.session.save(() => {
+        res.json({ success: true });
+    });
 });
 
 // PUT /api/auth/me - Full profile update
-router.put('/me', (req, res) => {
-    if (!req.session.user) return res.status(401).json({ error: 'Not authenticated' });
-    const { name, industry, experience } = req.body;
+router.put('/me', async (req, res) => {
+    const userId = req.session.userId || (req.user ? req.user.id : null);
+    if (!userId) return res.status(401).json({ error: 'Not authenticated' });
+    
+    const body = req.body;
+    const { 
+        fullName = '', 
+        industry = '', 
+        experience = '', 
+        bio = '', 
+        skills = '', 
+        github_url = '', 
+        linkedin_url = '', 
+        portfolio_url = '', 
+        naukri_url = '', 
+        internshala_url = '', 
+        glassdoor_url = '', 
+        wellfound_url = '', 
+        indeed_url = '',
+        google_url = '',
+        otta_url = '',
+        ziprecruiter_url = '',
+        phone = '', 
+        location = '', 
+        currentTitle = '' 
+    } = body;
+    
+    console.log(`[Auth] Updating profile for user ${userId}`);
+    
     const db = getDb();
-    db.prepare('UPDATE users SET name = ?, industry = ?, experience = ? WHERE id = ?').run(name, industry, experience, req.session.user.id);
-    req.session.user.name = name;
-    req.session.user.industry = industry;
-    req.session.user.experience = experience;
-    res.json({ success: true });
+    try {
+        const result = db.prepare(`
+            UPDATE users 
+            SET full_name = ?, name = ?, industry = ?, experience = ?, bio = ?, skills = ?, 
+                github_url = ?, linkedin_url = ?, portfolio_url = ?, 
+                naukri_url = ?, internshala_url = ?, glassdoor_url = ?, wellfound_url = ?, indeed_url = ?,
+                google_url = ?, otta_url = ?, ziprecruiter_url = ?,
+                phone = ?, location = ?, current_title = ?
+            WHERE id = ?
+        `).run(
+            fullName || 'User', fullName || 'User', industry, experience, bio, skills, 
+            github_url, linkedin_url, portfolio_url, 
+            naukri_url, internshala_url, glassdoor_url, wellfound_url, indeed_url,
+            google_url, otta_url, ziprecruiter_url,
+            phone, location, currentTitle, userId
+        );
+        
+        if (result.changes === 0) {
+            console.warn(`[Auth] No rows updated for user ${userId}`);
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Refresh user from DB
+        const updatedUser = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+        const userObj = setSession(req, updatedUser);
+        
+        req.session.save((err) => {
+            if (err) {
+                console.error('[Auth] Session save error:', err);
+                return res.status(500).json({ error: 'Failed to save session' });
+            }
+            res.json({ success: true, user: userObj });
+        });
+    } catch (e) {
+        console.error('[Auth] Profile update error:', e);
+        res.status(500).json({ error: 'Database update failed: ' + e.message });
+    }
+});
+
+// POST /api/auth/avatar - Upload profile picture
+router.post('/avatar', upload.single('avatar'), (req, res) => {
+    if (!req.session.userId && !req.user) return res.status(401).json({ error: 'Not authenticated' });
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+    const userId = req.session.userId || req.user.id;
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    const db = getDb();
+
+    try {
+        db.prepare('UPDATE users SET avatar_url = ? WHERE id = ?').run(avatarUrl, userId);
+        
+        // Refresh session
+        const updated = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+        setSession(req, updated);
+        
+        req.session.save(() => {
+            res.json({ success: true, avatarUrl });
+        });
+    } catch (e) {
+        console.error('[Auth] Avatar upload error:', e);
+        res.status(500).json({ error: 'Failed to update avatar' });
+    }
 });
 
 // DELETE /api/auth/me - Delete account
 router.delete('/me', (req, res) => {
-    if (!req.session.user) return res.status(401).json({ error: 'Not authenticated' });
+    const userId = req.session.userId || (req.session.user ? req.session.user.id : null);
+    if (!userId) return res.status(401).json({ error: 'Not authenticated' });
     const db = getDb();
-    const userId = req.session.user.id;
     db.prepare('DELETE FROM applications WHERE user_id = ?').run(userId);
     db.prepare('DELETE FROM resumes WHERE user_id = ?').run(userId);
     db.prepare('DELETE FROM quizzes WHERE user_id = ?').run(userId);
     db.prepare('DELETE FROM interviews WHERE user_id = ?').run(userId);
     db.prepare('DELETE FROM users WHERE id = ?').run(userId);
     req.session.destroy(() => res.json({ success: true }));
+});
+
+// GET /api/auth/profile-stats - Aggregate user statistics
+router.get('/profile-stats', (req, res) => {
+    if (!req.session.userId && !req.user) return res.status(401).json({ error: 'Not authenticated' });
+    const userId = req.session.userId || req.user.id;
+    const db = getDb();
+
+    try {
+        const stats = {
+            totalInterviews: db.prepare('SELECT COUNT(*) as count FROM interviews WHERE user_id = ?').get(userId).count,
+            avgAtsScore: db.prepare('SELECT AVG(score) as avg FROM ats_reports WHERE user_id = ?').get(userId).avg || 0,
+            totalResumes: db.prepare('SELECT COUNT(*) as count FROM resumes WHERE user_id = ?').get(userId).count,
+            memberSince: db.prepare('SELECT created_at FROM users WHERE id = ?').get(userId).created_at
+        };
+        res.json(stats);
+    } catch (e) {
+        console.error('[Auth] Stats error:', e);
+        res.status(500).json({ error: 'Failed to fetch stats' });
+    }
+});
+
+// GET /api/auth/recent-activity - Fetch last 10 actions
+router.get('/recent-activity', (req, res) => {
+    if (!req.session.userId && !req.user) return res.status(401).json({ error: 'Not authenticated' });
+    const userId = req.session.userId || req.user.id;
+    const db = getDb();
+
+    try {
+        const interviews = db.prepare('SELECT "interview" as type, role, created_at FROM interviews WHERE user_id = ? ORDER BY created_at DESC LIMIT 5').all(userId);
+        const ats = db.prepare('SELECT "ats" as type, job_role as role, created_at FROM ats_reports WHERE user_id = ? ORDER BY created_at DESC LIMIT 5').all(userId);
+        const quizzes = db.prepare('SELECT "quiz" as type, role, created_at FROM quizzes WHERE user_id = ? ORDER BY created_at DESC LIMIT 5').all(userId);
+
+        const activity = [...interviews, ...ats, ...quizzes]
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            .slice(0, 10);
+
+        res.json(activity);
+    } catch (e) {
+        console.error('[Auth] Activity error:', e);
+        res.status(500).json({ error: 'Failed to fetch activity' });
+    }
 });
 
 module.exports = router;

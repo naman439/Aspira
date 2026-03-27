@@ -17,9 +17,14 @@ router.post('/generate', requireAuth, async (req, res) => {
         const { role, skill, count = 10 } = req.body;
         const user = req.session.user;
         
-        const prompt = `Generate ${count} multiple choice questions for a ${role} interview focusing on ${skill || 'general technical knowledge'}.
+        const prompt = `Generate ${count} unique multiple choice questions for a ${role} interview focusing on ${skill || 'general technical knowledge'}.
+    
+    IMPORTANT: Ensure the questions are diverse, challenging, and cover a wide range of sub-topics within ${skill}. 
+    Avoid repeating common/basic questions. Use different phrasing and scenarios to keep it fresh.
+    
     User Industry: ${user.industry || 'Tech'}
     User Experience Level: ${user.experience || 'Entry-level'}
+    Randomness Seed: ${Date.now()}
     
     Format as JSON object with a "questions" array: {
       "questions": [{

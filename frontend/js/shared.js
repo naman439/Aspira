@@ -7,9 +7,9 @@ const API_CONFIG = {
     BACKEND_URL: 'https://aspira-2h9i.onrender.com'
 };
 
-const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    ? '' 
-    : API_CONFIG.BACKEND_URL;
+const API_BASE_URL = window.location.hostname.includes('onrender.com')
+    ? API_CONFIG.BACKEND_URL
+    : '';
 
 console.log(`%c[Aspira] API Targeting Backend: ${API_BASE_URL || "Local Server"}`, "color: #3b82f6; font-weight: bold;");
 
@@ -44,12 +44,15 @@ async function api(endpoint, methodOrOptions = {}, bodyData = null) {
     }
     const defaults = {
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include'
+        credentials: 'include',
+        cache: 'no-store'
     };
-    
+
     // Build full URL if needed
     const fullUrl = endpoint.startsWith('http') ? endpoint : API_BASE_URL + endpoint;
-    
+
+    console.log(`[API] ${options.method || 'GET'} ${fullUrl}`, options.body ? JSON.parse(options.body) : '');
+
     const res = await fetch(fullUrl, { ...defaults, ...options, headers: { ...defaults.headers, ...(options.headers || {}) } });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Request failed');
@@ -98,12 +101,18 @@ function buildNav(user) {
     const navName = document.getElementById('nav-name');
     const navAvatar = document.getElementById('nav-avatar');
 
-    if (navName) {
+    if (navName && user.name) {
         navName.textContent = user.name.split(' ')[0];
     }
 
     if (navAvatar) {
-        navAvatar.textContent = user.name.charAt(0).toUpperCase();
+        if (user.avatarUrl) {
+            navAvatar.innerHTML = `<img src="${user.avatarUrl}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+            navAvatar.textContent = '';
+        } else if (user.name) {
+            navAvatar.textContent = user.name.charAt(0).toUpperCase();
+            navAvatar.innerHTML = ''; // Clear any previous image
+        }
     }
 }
 
@@ -156,3 +165,66 @@ const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <text x="50" y="57" text-anchor="middle" font-size="42" font-weight="900" fill="white" font-family="Arial, sans-serif"
     style="font-style: italic">A</text>
 </svg>`;
+// --- Lucide Icons initialization ---
+function initIcons() {
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+}
+
+// --- Global Footer ---
+function buildFooter() {
+    const footer = document.createElement('footer');
+    footer.className = 'footer';
+    footer.innerHTML = `
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="footer-logo">${LOGO_SVG}</div>
+                    <span>Aspira</span>
+                    <p class="text-xs mt-1">Elevate your career with AI.</p>
+                </div>
+                <div class="footer-links">
+                    <a href="/dashboard">Dashboard</a>
+                    <a href="/ats-checker">ATS Check</a>
+                    <a href="/sign-in">Sign In</a>
+                </div>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="https://github.com/naman439/Aspira" target="_blank">GitHub</a>
+                    <a href="#">Contact</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                &copy; 2026 Aspira. Built with passion for students.
+            </div>
+        </div>
+    `;
+    const main = document.querySelector('main');
+    if (main) {
+        main.after(footer);
+    } else {
+        document.body.appendChild(footer);
+    }
+}
+
+// Auto-run on load
+window.addEventListener('DOMContentLoaded', () => {
+    initIcons();
+
+    // 1. Add Back Button to Navbar
+    const nav = document.querySelector('.navbar');
+    const isHome = window.location.pathname === '/' || window.location.pathname === '/index.html';
+
+    if (nav && !isHome) {
+        const backBtn = document.createElement('button');
+        backBtn.className = 'btn btn-ghost btn-sm back-btn';
+        // Use inline SVG instead of lucide for absolute reliability
+        backBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>`;
+        backBtn.onclick = () => window.history.back();
+        nav.prepend(backBtn);
+    }
+
+    // 2. Brand (Static)
+    // Removed click redirect as per user request
+});

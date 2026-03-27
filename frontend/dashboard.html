@@ -6,10 +6,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard – Aspira</title>
     <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        body { color: white !important; }
+
+        /* ── Special dashboard overrides (layout only) ── */
+        .path-card {
+            border-radius: var(--radius-lg) !important;
+            padding: 2.5rem 2rem !important;
+        }
+
+        .path-card h3, .path-card p, .path-card li {
+            color: white !important;
+        }
+
+        .path-card .subtitle {
+            color: rgba(255,255,255,0.7) !important;
+        }
+
+        .path-features li {
+            color: rgba(255,255,255,0.75) !important;
+            font-size: 0.9rem;
+        }
+
+        /* Quick Access card text adjustments */
+        a.glass-card div, a.glass-card p { color: white !important; }
+        a.glass-card p { color: rgba(255,255,255,0.6) !important; }
+
+        /* ATS History card specific text visibility */
+        .card [style*="font-weight:600"] { color: white !important; }
+        .card [style*="text-muted"] { color: rgba(255,255,255,0.55) !important; }
+
+        h3 { color: white !important; }
+        [style*="border-top"] { border-top-color: rgba(255,255,255,0.12) !important; }
+    </style>
 </head>
 
 <body>
-    <div class="bg-pattern"></div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <div class="video-bg-container">
+        <video autoplay muted loop playsinline class="video-bg">
+            <source src="https://videos.pexels.com/video-files/18069232/18069232-hd_1920_1080_24fps.mp4" type="video/mp4">
+        </video>
+        <div class="video-overlay"></div>
+    </div>
 
     <!-- Navbar -->
     <nav class="navbar">
@@ -30,29 +69,29 @@
     <main class="main-content">
         <div class="container">
             <div class="dashboard-hero">
-                <h1>Choose Your Path</h1>
+                <h1 class="gradient-text">Choose Your Path</h1>
                 <p>Select an option to begin your journey</p>
             </div>
 
             <div class="path-grid">
                 <!-- AI Voice Interview Card -->
-                <div class="path-card" onclick="window.location='/interview'">
-                    <div class="path-icon">🤖</div>
+                <div class="path-card glass-card" onclick="window.location='/interview'">
+                    <div class="path-icon"><i data-lucide="mic-2"></i></div>
                     <h3>AI-Powered Mock Interview</h3>
                     <p class="subtitle">Experience real interview simulations with an AI interviewer. Answer
                         role-specific questions and get instant feedback on confidence, clarity, and technical depth.
                     </p>
                     <ul class="path-features">
-                        <li>Voice based interviews</li>
+                        <li>Voice-based interviews</li>
                         <li>Role-specific questions</li>
                         <li>Real-time AI feedback</li>
                     </ul>
-                    <button class="btn btn-primary">Start Interview</button>
+                    <button class="btn btn-primary" style="width: 100%;">Start Interview</button>
                 </div>
 
                 <!-- Career Tools Card -->
-                <div class="path-card" onclick="window.location='/analytics'">
-                    <div class="path-icon" style="background:rgba(139,92,246,0.1)">🛠️</div>
+                <div class="path-card glass-card" onclick="window.location='/analytics'">
+                    <div class="path-icon" style="background:rgba(139,92,246,0.1)"><i data-lucide="wrench"></i></div>
                     <h3>Aspira Career Tools</h3>
                     <p class="subtitle">Build professional resumes, practice AI-powered mock interviews, and take
                         role-based MCQ assessments, all enhanced with intelligent feedback.</p>
@@ -62,38 +101,38 @@
                         <li>AI ATS Checker</li>
                         <li>MCQ Mock Interview Practice</li>
                     </ul>
-                    <button class="btn btn-secondary">Explore Tools</button>
+                    <button class="btn btn-primary" style="width: 100%;">Explore Tools</button>
                 </div>
             </div>
 
             <!-- Quick Links -->
             <div style="margin-top:3rem;">
                 <h3 class="mb-4">Quick Access</h3>
-                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;">
-                    <a href="/tracker" class="card" style="text-align:center;cursor:pointer;text-decoration:none;">
-                        <div style="font-size:1.75rem;margin-bottom:0.5rem;">💼</div>
+                <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:1rem;">
+                    <a href="/tracker" class="glass-card" style="text-align:center; cursor:pointer; text-decoration:none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; padding: 1.5rem;">
+                        <i data-lucide="briefcase" style="color: var(--accent-blue)"></i>
                         <div style="font-size:0.875rem;font-weight:600;">Job Tracker</div>
-                        <p style="font-size:0.75rem;margin-top:0.25rem;">Manage applications</p>
+                        <p style="font-size:0.75rem; color: var(--text-muted);">Manage applications</p>
                     </a>
-                    <a href="/analytics" class="card" style="text-align:center;cursor:pointer;text-decoration:none;">
-                        <div style="font-size:1.75rem;margin-bottom:0.5rem;">📊</div>
+                    <a href="/analytics" class="glass-card" style="text-align:center; cursor:pointer; text-decoration:none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; padding: 1.5rem;">
+                        <i data-lucide="line-chart" style="color: var(--accent-purple)"></i>
                         <div style="font-size:0.875rem;font-weight:600;">Analytics</div>
-                        <p style="font-size:0.75rem;margin-top:0.25rem;">Track performance</p>
+                        <p style="font-size:0.75rem; color: var(--text-muted);">Track performance</p>
                     </a>
-                    <a href="/ai-chat" class="card" style="text-align:center;cursor:pointer;">
-                        <div style="font-size:1.75rem;margin-bottom:0.5rem;">💬</div>
+                    <a href="/ai-chat" class="glass-card" style="text-align:center; cursor:pointer; text-decoration:none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; padding: 1.5rem;">
+                        <i data-lucide="message-square" style="color: var(--accent-blue)"></i>
                         <div style="font-size:0.875rem;font-weight:600;">AI Career Coach</div>
-                        <p style="font-size:0.75rem;margin-top:0.25rem;">Get career advice</p>
+                        <p style="font-size:0.75rem; color: var(--text-muted);">Get career advice</p>
                     </a>
-                    <a href="/ats-checker" class="card" style="text-align:center;cursor:pointer;">
-                        <div style="font-size:1.75rem;margin-bottom:0.5rem;">⚖️</div>
+                    <a href="/ats-checker" class="glass-card" style="text-align:center; cursor:pointer; text-decoration:none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; padding: 1.5rem;">
+                        <i data-lucide="check-circle-2" style="color: var(--accent-purple)"></i>
                         <div style="font-size:0.875rem;font-weight:600;">ATS Checker</div>
-                        <p style="font-size:0.75rem;margin-top:0.25rem;">Resume Analysis</p>
+                        <p style="font-size:0.75rem; color: var(--text-muted);">Resume Analysis</p>
                     </a>
-                    <a href="/quiz" class="card" style="text-align:center;cursor:pointer;">
-                        <div style="font-size:1.75rem;margin-bottom:0.5rem;">🧠</div>
+                    <a href="/quiz" class="glass-card" style="text-align:center; cursor:pointer; text-decoration:none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; padding: 1.5rem;">
+                        <i data-lucide="brain" style="color: var(--accent-blue)"></i>
                         <div style="font-size:0.875rem;font-weight:600;">MCQ Quiz</div>
-                        <p style="font-size:0.75rem;margin-top:0.25rem;">Test your skills</p>
+                        <p style="font-size:0.75rem; color: var(--text-muted);">Test your skills</p>
                     </a>
                 </div>
             </div>
@@ -111,15 +150,14 @@
 
             <!-- Ready CTA -->
             <div style="text-align:center;padding:4rem 0 3rem;border-top:1px solid var(--border);margin-top:3rem;">
-                <h2>Ready to Ace Your Next Interview?</h2>
-                <p style="margin:0.75rem auto 2rem;max-width:500px;">Join thousands of professionals using Aspira to
-                    land their dream job.</p>
+                <h2 class="gradient-text">Ready to Ace Your Next Interview?</h2>
+                <p style="margin:0.75rem auto 2rem;max-width:500px;">Join thousands of professionals using Aspira to land their dream job.</p>
                 <a href="/interview" class="btn btn-primary btn-lg">Start Your First Interview</a>
             </div>
         </div>
     </main>
 
-    <footer class="footer">© 2025 Aspira by Naman Arya</footer>
+    <footer class="footer"></footer>
 
     <script src="/js/shared.js"></script>
     <script>
@@ -127,6 +165,7 @@
         (async () => {
             const user = await checkAuth('/sign-in');
             buildNav(user);
+            buildFooter();
 
             // Fetch ATS History
             try {
@@ -138,7 +177,7 @@
                     section.style.display = 'block';
                     
                     list.innerHTML = reports.slice(0, 3).map(report => `
-                        <div class="card" onclick="window.location='/ats-checker?reportId=${report.id}'" style="cursor:pointer; transition: transform 0.2s;">
+                        <div class="card card-hover-glow" onclick="window.location='/ats-checker?reportId=${report.id}'" style="cursor:pointer; transition: transform 0.2s;">
                             <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:1rem;">
                                 <div>
                                     <div style="font-weight:600; color:var(--text);">${report.resume_name}</div>
@@ -154,6 +193,8 @@
                 }
             } catch (err) {
                 console.error('Failed to fetch ATS history', err);
+            } finally {
+                initIcons();
             }
         })();
     </script>

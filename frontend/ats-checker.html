@@ -7,189 +7,436 @@
     <title>ATS Score Checker – Aspira</title>
     <link rel="stylesheet" href="/css/styles.css">
     <style>
-        :root {
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --accent-glow: rgba(59, 130, 246, 0.15);
+        .ats-wizard-container {
+            max-width: 750px;
+            margin: 20px auto;
+            padding: 0 24px;
         }
 
-        .step-container {
-            max-width: 800px;
-            margin: 0 auto;
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .upload-zone {
-            border: 2px dashed var(--glass-border);
-            background: var(--glass);
-            border-radius: 24px;
-            padding: 5rem 2rem;
+        .ats-main-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: var(--glass-border);
+            border-radius: var(--radius-xl);
+            padding: 2.5rem;
+            box-shadow: var(--glass-inner-light), var(--glass-shadow);
             text-align: center;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: var(--transition);
+        }
+
+        .wizard-header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, var(--accent-blue) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .wizard-header p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 12px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* State 0: Upload Zone */
+        .upload-zone-new {
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            margin-bottom: 1rem;
+        }
+
+        .upload-zone-new:hover {
+            background: rgba(59, 130, 246, 0.05);
+            border-color: var(--accent-blue);
+            transform: scale(0.99);
+        }
+
+        .upload-icon-new {
+            width: 56px;
+            height: 56px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            color: var(--accent-blue);
+        }
+
+        /* State 1: File Ready Row */
+        .file-ready-row {
+            display: flex;
+            align-items: center;
+            padding: 0.6rem 1rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            text-align: left;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 44px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* choice Cards */
+        .choice-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+
+        .choice-card {
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(12px) saturate(160%);
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
+            border-radius: 16px;
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
             position: relative;
+            color: #ffffff;
             overflow: hidden;
-            backdrop-filter: blur(12px);
         }
 
-        .upload-zone::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at center, var(--accent-glow) 0%, transparent 70%);
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-
-        .upload-zone:hover::before {
-            opacity: 1;
-        }
-
-        .upload-zone:hover, .upload-zone.dragover {
+        .choice-card:hover {
             border-color: var(--accent-blue);
             transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            background: rgba(15, 23, 42, 0.55);
         }
 
-        .upload-icon {
-            font-size: 5rem;
-            margin-bottom: 1.5rem;
-            display: inline-block;
-            filter: drop-shadow(0 0 20px var(--accent-glow));
-        }
-
-        .file-info {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.75rem;
-            background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+        .choice-card.active {
+            background: var(--accent-blue);
+            border-color: #ffffff;
             color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 14px;
-            margin-top: 1.5rem;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
         }
 
-        /* Analysis Report Styles */
+        .choice-icon {
+            width: 42px;
+            height: 42px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            color: #ffffff;
+        }
+
+        .choice-card.active .choice-icon {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .choice-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent-blue-soft);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            color: var(--accent-blue);
+        }
+
+        .choice-card.active .choice-icon {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .choice-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .choice-card p {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+
+        .choice-card.active p {
+            color: #94a3b8;
+        }
+
+        .choice-tag {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: capitalize;
+        }
+
+        .checkmark {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.3s;
+        }
+
+        .choice-card.active .checkmark {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Searchable Select */
+        .custom-select-container {
+            text-align: left;
+            margin-top: 0.75rem;
+            position: relative;
+        }
+
+        .custom-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .search-box-new, .jd-textarea-new, #role-search {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: var(--glass-border) !important;
+            color: white !important;
+            border-radius: var(--radius-md) !important;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .search-box-new:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-color: rgba(255, 255, 255, 0.5) !important;
+        }
+
+        .recent-reports-section {
+            margin-top: 4rem;
+            text-align: left;
+        }
+
+        .recent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .report-mini-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            padding: 1.25rem;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+        }
+
+        .report-mini-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateX(4px);
+        }
+
+        .main-score-card, .category-card {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .score-inner .score-number { color: white; }
+        .score-ring::before { background: #020617; }
+        .cat-title { color: white !important; }
+        .feedback-item { color: var(--text-secondary); }
+
+        .hidden { display: none !important; }
+
+        .btn-analyze {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: not-allowed;
+            margin-top: 2rem;
+            transition: all 0.3s;
+        }
+
+        .btn-outline {
+            color: var(--text-main) !important;
+            border-color: var(--border-light) !important;
+        }
+
+        .btn-outline:hover {
+            background: var(--accent-gray) !important;
+        }
+
+        .btn-analyze.active {
+            background: #0f172a;
+            color: white;
+            cursor: pointer;
+        }
+
+        .btn-analyze.active:hover {
+            background: #1e293b;
+        }
+
+        .badge-demand {
+            font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-blue);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Report Styles */
         .report-grid {
             display: grid;
             grid-template-columns: 320px 1fr;
             gap: 2.5rem;
             margin-top: 2rem;
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        .report-sidebar {
-            position: sticky;
-            top: 2rem;
+            text-align: left;
         }
 
         .main-score-card {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: 32px;
-            padding: 3rem 2rem;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1.5px solid rgba(255, 255, 255, 0.18);
+            border-radius: 24px;
+            padding: 2.5rem 1.5rem;
             text-align: center;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 24px 48px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
         }
 
         .score-ring {
-            width: 180px;
-            height: 180px;
+            width: 160px;
+            height: 160px;
             border-radius: 50%;
-            margin: 0 auto 2rem;
+            margin: 0 auto 1.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
-            background: conic-gradient(var(--accent-blue) calc(var(--score) * 1%), rgba(255,255,255,0.03) 0);
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+            background: conic-gradient(var(--accent-blue) calc(var(--score) * 1%), #f1f5f9 0);
         }
 
         .score-ring::before {
             content: '';
             position: absolute;
-            inset: 14px;
-            background: #0f172a;
+            inset: 12px;
+            background: rgba(10, 16, 35, 0.95);
             border-radius: 50%;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
         }
 
-        .score-inner {
-            position: relative;
-            z-index: 1;
-        }
+        .score-inner { position: relative; z-index: 1; }
 
         .score-number {
-            font-size: 4rem;
-            font-weight: 900;
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: white;
             display: block;
             line-height: 1;
-            background: linear-gradient(to bottom, #fff, #94a3b8);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
         }
 
         .score-label {
-            font-size: 0.875rem;
-            color: var(--text-muted);
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-top: 0.5rem;
+            margin-top: 4px;
             display: block;
         }
 
         .category-card {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 1.75rem;
-            margin-bottom: 1.25rem;
-            transition: transform 0.3s;
-        }
-
-        .category-card:hover {
-            transform: scale(1.01);
-            background: rgba(255,255,255,0.04);
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(16px) saturate(160%);
+            -webkit-backdrop-filter: blur(16px) saturate(160%);
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
 
         .category-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1rem;
         }
 
         .cat-title {
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 14px;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 8px;
+            color: white !important;
+            letter-spacing: 0.5px;
         }
 
         .progress-bar {
-            height: 10px;
-            background: rgba(255,255,255,0.03);
-            border-radius: 5px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
             overflow: hidden;
-            margin-bottom: 1.25rem;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+            margin-bottom: 1rem;
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(to right, var(--accent-blue), #60a5fa);
-            transition: width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: var(--accent-blue);
+            transition: width 1s ease-out;
         }
 
         .feedback-list {
@@ -199,106 +446,208 @@
         }
 
         .feedback-item {
-            font-size: 0.95rem;
-            padding: 0.6rem 0;
-            padding-left: 1.75rem;
+            font-size: 13px;
+            padding: 4px 0;
+            padding-left: 1.5rem;
             position: relative;
-            color: #94a3b8;
-            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
         }
 
         .feedback-item::before {
-            content: '✦';
+            content: '•';
             position: absolute;
             left: 0;
             color: var(--accent-blue);
-            font-size: 0.8rem;
+            font-weight: bold;
         }
 
         .tag-cloud {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.6rem;
+            gap: 8px;
         }
 
         .tag-item {
-            background: rgba(59, 130, 246, 0.08);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            color: #93c5fd;
-            padding: 0.5rem 1rem;
-            border-radius: 10px;
-            font-size: 0.8rem;
+            background: rgba(59, 130, 246, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
             font-weight: 600;
+            border: 1px solid rgba(59, 130, 246, 0.3);
         }
 
-        .hidden { display: none !important; }
+        .role-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--accent-blue) !important;
+        }
+
+        #role-search:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px var(--accent-blue-soft);
+        }
+
+        .report-mini-card:hover {
+            border-color: var(--accent-blue);
+            background: var(--accent-blue-soft);
+        }
 
         @media (max-width: 900px) {
             .report-grid { grid-template-columns: 1fr; }
-            .report-sidebar { position: static; }
         }
     </style>
 </head>
 
 <body>
-    <div class="bg-pattern"></div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <div class="video-bg-container">
+        <video autoplay muted loop playsinline class="video-bg">
+            <source src="https://videos.pexels.com/video-files/18069232/18069232-hd_1920_1080_24fps.mp4" type="video/mp4">
+        </video>
+        <div class="video-overlay"></div>
+    </div>
     <nav class="navbar">
         <div class="navbar-brand">
             <div style="width:32px;height:32px" id="nav-logo"></div>Aspira
         </div>
         <div class="navbar-actions">
-            <a href="/dashboard" class="btn btn-ghost btn-sm">← Dashboard</a>
+            <a href="/dashboard" class="btn btn-ghost btn-sm">Dashboard</a>
             <span class="nav-user-name" id="nav-name"></span>
             <div class="nav-avatar" id="nav-avatar"></div>
+            <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign Out</button>
         </div>
-    </nav>
+    </nav>    <main class="main-content">
+        <div class="ats-wizard-container">
+            <div class="ats-main-card" id="main-wizard-card">
+                <div class="wizard-header" id="wizard-header">
+                    <h1>Analyze a New Resume</h1>
+                    <p>Upload your PDF resume and get your ATS score in seconds.</p>
+                </div>
 
-    <main class="main-content">
-        <div class="container">
-            <!-- Step 1: Upload -->
-            <section id="step-upload" class="step-container">
-                <header style="text-align:center; margin-bottom: 3rem;">
-                    <h1 style="font-size: 3rem; margin-bottom: 1rem;">ATS Score Checker</h1>
-                    <p style="font-size: 1.25rem; color: var(--text-muted)">Get your resume score and professional improvement tips in seconds.</p>
-                </header>
+                <!-- State 0: Initial Upload -->
+                <div id="state-upload">
+                    <div class="upload-zone-new" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                        <input type="file" id="file-input" accept=".pdf" style="display:none" onchange="handleFileUpload(this)">
+                        <div class="upload-icon-new"><i data-lucide="cloud-upload" style="width: 28px; height: 28px;"></i></div>
+                        <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">Drag & drop your PDF here</h2>
+                        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px;">— or —</p>
+                        <button class="btn btn-primary" style="padding: 10px 24px; font-weight: 600; border-radius: 99px;">Browse File</button>
+                    </div>
+                </div>
 
-                <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
-                    <input type="file" id="file-input" accept=".pdf" style="display:none" onchange="handleFileUpload(this)">
-                    <span class="upload-icon">📄</span>
-                    <h2>Upload your Resume</h2>
-                    <p class="text-muted">Drag and drop your PDF here, or click to browse</p>
-                    <div id="selected-file" class="hidden">
-                        <div class="file-info">
-                            <span id="file-name-display">resume.pdf</span>
-                            <span>✓</span>
+                <!-- State 1: File Ready & Choice -->
+                <div id="state-choice" class="hidden">
+                    <div class="file-ready-row">
+                        <div class="file-icon"><i data-lucide="file-text" style="color: var(--text-muted)"></i></div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; font-size: 14px;"><span id="file-name-display">Resume__.pdf</span> <i data-lucide="check-circle-2" style="width: 14px; color: #22c55e; vertical-align: middle;"></i></div>
+                            <div style="font-size: 12px; color: var(--text-muted);"><span id="file-size-display">129.1 KB</span> • <span style="color: #ef4444; cursor: pointer;" onclick="resetFlow()">Remove</span></div>
                         </div>
                     </div>
-                </div>
-            </section>
 
-            <!-- Step 2: Context -->
-            <section id="step-context" class="step-container hidden">
-                <header style="text-align:center; margin-bottom: 2rem;">
-                    <h2>Adding Context</h2>
-                    <p class="text-muted">Tell us about the job you're targeting for a more accurate score.</p>
-                </header>
-                
-                <div class="card card-glow" style="max-width: 600px; margin: 0 auto;">
-                    <div class="form-group mb-4">
-                        <label>Target Job Role</label>
-                        <input type="text" id="job-role" placeholder="e.g. Senior Product Designer">
+                    <div class="choice-grid">
+                        <div class="choice-card" id="choice-role" onclick="selectAnalysisType('role')">
+                            <div class="checkmark"><i data-lucide="check" style="width: 12px;"></i></div>
+                            <div class="choice-icon"><i data-lucide="briefcase"></i></div>
+                            <h3>Role Analysis</h3>
+                            <p>Choose a target role and we analyze your resume against it.</p>
+                            <div class="choice-tag">Best for: exploring job markets</div>
+                        </div>
+                        <div class="choice-card" id="choice-jd" onclick="selectAnalysisType('jd')">
+                            <div class="checkmark"><i data-lucide="check" style="width: 12px;"></i></div>
+                            <div class="choice-icon"><i data-lucide="file-text"></i></div>
+                            <h3>Job Description Match</h3>
+                            <p>Paste a job posting and we match your resume to it exactly.</p>
+                            <div class="choice-tag">Best for: specific applications</div>
+                        </div>
                     </div>
-                    <div class="form-group mb-4">
-                        <label>Job Description (Optional)</label>
-                        <textarea id="job-desc" rows="5" placeholder="Paste the job requirements to check for missing keywords..."></textarea>
-                    </div>
-                    <button class="btn btn-primary btn-lg w-full" id="analyze-btn" onclick="runAnalysis()">Analyze My Resume</button>
-                    <button class="btn btn-ghost w-full mt-2" onclick="resetFlow()">Change Resume</button>
-                </div>
-            </section>
 
-            <!-- Step 3: Report -->
+                    <!-- State 2: Role Selection -->
+                    <div id="area-role" class="hidden">
+                        <div class="custom-select-container">
+                            <label class="custom-label">Select Your Target Role</label>
+                            <div class="search-box-new" onclick="toggleRoleDropdown()">
+                                <span id="selected-role-text">Search for a role...</span>
+                                <i data-lucide="chevron-down" style="width: 16px; color: var(--text-muted)"></i>
+                            </div>
+                            <!-- Custom Dropdown Menu (True Glass) - Updated to use global push-down behavior -->
+                            <div id="role-dropdown-menu" class="custom-select-list" style="position: relative !important; margin-top: 8px; width: 100%; max-height: 320px;">
+                                <div style="padding: 8px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.1); margin-bottom: 12px;">
+                                    <input type="text" id="role-search" placeholder="Type to search roles..." style="width: 100%; background: rgba(255, 255, 255, 0.05); border: 1.5px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 10px 14px; font-size: 14px; color: white;" onkeyup="filterRoles()">
+                                </div>
+                                <div style="font-size: 11px; font-weight: 800; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; padding: 4px 12px; margin-bottom: 8px; letter-spacing: 1px;">AI-Recommended Roles</div>
+                                <div id="roles-list" style="max-height: 135px; overflow-y: auto; padding-right: 4px; scroll-behavior: smooth;">
+                                    <!-- Tech -->
+                                    <div class="role-option" onclick="setRole('Software Engineer')" style="padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 2px; color: white;">Software Engineer <span class="badge-demand">High demand</span></div>
+                                    <div class="role-option" onclick="setRole('Full Stack Developer')" style="padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 2px; color: white;">Full Stack Developer <span class="badge-demand">High demand</span></div>
+                                    <div class="role-option" onclick="setRole('Frontend Developer')" style="padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 2px; color: white;">Frontend Developer <span class="badge-demand">Trending</span></div>
+                                    <div class="role-option" onclick="setRole('Backend Developer')" style="padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 2px; color: white;">Backend Developer <span class="badge-demand">Elite</span></div>
+                                    <div class="role-option" onclick="setRole('DevOps Engineer')" style="padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 2px; color: white;">DevOps Engineer <span class="badge-demand">Critical</span></div>
+                                    <div class="role-option" onclick="setRole('Cloud Solutions Architect')" style="padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 2px; color: white;">Cloud Architect <span class="badge-demand">Premium</span></div>
+                                    
+                                    <!-- Data -->
+                                    <div class="role-option" onclick="setRole('Data Scientist')" style="padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 2px; color: white;">Data Scientist <span class="badge-demand">High demand</span></div>
+                                    <div class="role-option" onclick="setRole('AI/ML Engineer')" style="padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 2px; color: white;">AI/ML Engineer <span class="badge-demand">Future Proof</span></div>
+                                    <div class="role-option" onclick="setRole('Data Analyst')" style="padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 2px; color: white;">Data Analyst <span class="badge-demand">Analytical</span></div>
+                                    
+                                    <!-- Design & Strategy -->
+                                    <div class="role-option" onclick="setRole('UI/UX Designer')" style="padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 2px; color: white;">UI/UX Designer <span class="badge-demand">Creative</span></div>
+                                    <div class="role-option" onclick="setRole('Product Manager')" style="padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 2px; color: white;">Product Manager <span class="badge-demand">Strategic</span></div>
+                                    <div class="role-option" onclick="setRole('Project Manager')" style="padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 2px; color: white;">Project Manager <span class="badge-demand">Operational</span></div>
+                                    
+                                    <!-- Others -->
+                                    <div class="role-option" onclick="setRole('Cybersecurity Analyst')" style="padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 2px; color: white;">Cybersecurity Analyst <span class="badge-demand">In Demand</span></div>
+                                    <div class="role-option" onclick="setRole('Marketing Specialist')" style="padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 2px; color: white;">Marketing Specialist <span class="badge-demand">Growth</span></div>
+                                    <div class="role-option" onclick="setRole('HR Business Partner')" style="padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; margin-bottom: 2px; color: white;">HR Generalist <span class="badge-demand">Stable</span></div>
+                                </div>
+                                <div style="text-align: center; padding: 8px 0 4px; font-size: 11px; color: rgba(255,255,255,0.4); display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+                                    Scroll to see all &nbsp;15 roles
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- State 3: JD Paste -->
+                    <div id="area-jd" class="hidden">
+                        <div class="custom-select-container">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <label class="custom-label">Paste the Job Description</label>
+                                <span style="font-size: 10px; color: var(--text-muted); font-style: italic;">Tip: include the full posting for best results</span>
+                            </div>
+                            <textarea id="job-desc" class="jd-textarea-new" placeholder="Paste the full job description here — requirements, responsibilities, qualifications..."></textarea>
+                            <div style="text-align: right; margin-top: 8px;">
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('jd-file-input').click()" style="font-size: 12px; color: var(--accent-blue); display: flex; align-items: center; gap: 4px; margin-left: auto;">
+                                    <i data-lucide="file-up" style="width: 14px;"></i> Or upload a photo/PDF
+                                </button>
+                                <input type="file" id="jd-file-input" accept=".pdf,image/*" style="display:none" onchange="handleJDFileUpload(this)">
+                                <div id="jd-file-preview" class="hidden mt-2" style="font-size: 11px; color: var(--accent-blue); padding: 4px 8px; background: var(--accent-blue-soft); border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <i data-lucide="file-check" style="width: 12px;"></i> <span id="jd-file-name">file.pdf</span>
+                                    <span style="color: var(--accent-red); cursor: pointer; margin-left: 8px;" onclick="clearJDFile()">&times;</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn-analyze" id="analyze-btn" onclick="runAnalysis()">Analyze Resume</button>
+                    <!-- Hidden selectors for background logic -->
+                    <input type="hidden" id="job-role" value="">
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="hidden" style="text-align: center; padding: 4rem 2rem;">
+                <div class="upload-icon-new" style="background: var(--accent-blue-soft); border: none; box-shadow: none;">
+                    <div class="loader-spinner"></div>
+                </div>
+                <h2>Analyzing Your Resume</h2>
+                <p class="text-muted">Our AI is scanning your documents against the target requirements...</p>
+            </div>
+
             <section id="step-report" class="hidden">
+                <!-- Keep existing report structure for now, but I might polish it later -->
                 <div class="report-grid">
                     <div class="report-sidebar">
                         <div class="main-score-card">
@@ -332,180 +681,276 @@
                 </div>
             </section>
 
-            <!-- Loading State -->
-            <div id="loading-state" class="hidden" style="text-align:center; padding: 10rem 0;">
-                <span class="spinner" style="width:64px; height:64px; border-width: 4px;"></span>
-                <h2 class="mt-4">Analyzing Your Resume</h2>
-                <p class="text-muted">Our AI is breaking down your content...</p>
-            </div>
+            <section class="recent-reports-section" id="recent-reports-section">
+                <div class="recent-header">
+                    <h2 style="font-size: 20px; font-weight: 800;">Recent Reports</h2>
+                    <span style="font-size: 13px; color: var(--text-muted);">Your last 5 analysis results</span>
+                </div>
+                <div id="reports-list-container">
+                    <!-- Reports injected here -->
+                </div>
+            </section>
         </div>
     </main>
 
     <script src="/js/shared.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
-        document.getElementById('nav-logo').innerHTML = LOGO_SVG;
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
         let extractedText = "";
+        let jdExtractedText = "";
+        let jdImageData = null;
         let currentFileName = "";
+        let currentFileSize = "";
+        let selectedAnalysisType = null;
+        let selectedRole = "";
 
-        // Drag and Drop
-        const dropZone = document.getElementById('drop-zone');
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
-            dropZone.addEventListener(evt, e => {
-                e.preventDefault();
-                e.stopPropagation();
-            }, false);
-        });
+        // 1. Init
+        (async () => {
+            const user = await checkAuth('/sign-in');
+            buildNav(user);
+            buildFooter();
+            document.getElementById('nav-logo').innerHTML = LOGO_SVG;
+            lucide.createIcons();
+            loadRecentReports();
 
-        dropZone.addEventListener('dragover', () => dropZone.classList.add('dragover'));
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-        dropZone.addEventListener('drop', e => {
-            dropZone.classList.remove('dragover');
-            handleFileUpload({ files: e.dataTransfer.files });
-        });
+            // Check for deep link
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('reportId')) {
+                fetchAndRenderReport(urlParams.get('reportId'));
+            }
+        })();
 
+        // 2. Resume Upload
         async function handleFileUpload(input) {
             const file = input.files[0];
-            if (!file || file.type !== 'application/pdf') {
-                return showToast('Please select a valid PDF file', 'error');
-            }
+            if (!file || file.type !== 'application/pdf') return showToast('Please select a PDF file', 'error');
 
             currentFileName = file.name;
-            document.getElementById('file-name-display').textContent = file.name;
-            document.getElementById('selected-file').classList.remove('hidden');
+            currentFileSize = (file.size / 1024).toFixed(1) + " KB";
+            document.getElementById('file-name-display').innerText = currentFileName;
+            document.getElementById('file-size-display').innerText = currentFileSize;
+            
+            document.getElementById('state-upload').classList.add('hidden');
+            document.getElementById('state-choice').classList.remove('hidden');
             
             const reader = new FileReader();
-            reader.onload = async function() {
-                const typedarray = new Uint8Array(this.result);
+            reader.onload = async (e) => {
+                const typedarray = new Uint8Array(e.target.result);
                 try {
                     const pdf = await pdfjsLib.getDocument(typedarray).promise;
-                    let fullText = "";
+                    let text = "";
                     for (let i = 1; i <= pdf.numPages; i++) {
                         const page = await pdf.getPage(i);
-                        const textContent = await page.getTextContent();
-                        fullText += textContent.items.map(item => item.str).join(" ") + "\n";
+                        const content = await page.getTextContent();
+                        text += content.items.map(s => s.str).join(" ") + "\n";
                     }
-                    extractedText = fullText.trim();
-                    
-                    // Transition to step 2 after short delay for visual feedback
-                    setTimeout(() => {
-                        document.getElementById('step-upload').classList.add('hidden');
-                        document.getElementById('step-context').classList.remove('hidden');
-                    }, 800);
-                } catch (err) {
-                    showToast('Failed to parse PDF', 'error');
-                }
+                    extractedText = text;
+                    validateInputs();
+                    lucide.createIcons();
+                } catch (err) { showToast('PDF Parse Failed', 'error'); }
             };
             reader.readAsArrayBuffer(file);
         }
 
-        function resetFlow() {
-            extractedText = "";
-            currentFileName = "";
-            document.getElementById('step-upload').classList.remove('hidden');
-            document.getElementById('step-context').classList.add('hidden');
-            document.getElementById('step-report').classList.add('hidden');
-            document.getElementById('selected-file').classList.add('hidden');
-            document.getElementById('job-role').value = "";
-            document.getElementById('job-desc').value = "";
+        // 3. Selection
+        function selectAnalysisType(type) {
+            selectedAnalysisType = type;
+            document.getElementById('choice-role').classList.toggle('active', type === 'role');
+            document.getElementById('choice-jd').classList.toggle('active', type === 'jd');
+            document.getElementById('area-role').classList.toggle('hidden', type !== 'role');
+            document.getElementById('area-jd').classList.toggle('hidden', type !== 'jd');
+            validateInputs();
+            lucide.createIcons();
         }
 
+        // 4. Role Dropdown
+        function toggleRoleDropdown() {
+            const menu = document.getElementById('role-dropdown-menu');
+            const recentSection = document.querySelector('.recent-reports-section');
+            const isOpen = menu.classList.contains('open');
+            
+            menu.classList.toggle('open');
+
+            if (recentSection) {
+                recentSection.style.transition = 'margin-top 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+                if (!isOpen) {
+                    recentSection.style.marginTop = '220px';
+                } else {
+                    recentSection.style.marginTop = '';
+                }
+            }
+            
+            if (!isOpen) {
+                setTimeout(() => {
+                    document.addEventListener('click', closeDropdownOnOutsideClick, { once: true });
+                }, 0);
+            }
+        }
+        
+        function closeDropdownOnOutsideClick(e) {
+            const menu = document.getElementById('role-dropdown-menu');
+            const trigger = document.querySelector('.search-box-new');
+            if (!menu.contains(e.target) && !trigger.contains(e.target)) {
+                menu.classList.remove('open');
+                const recentSection = document.querySelector('.recent-reports-section');
+                if (recentSection) {
+                    recentSection.style.transition = 'margin-top 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+                    recentSection.style.marginTop = '';
+                }
+            }
+        }
+
+        function setRole(role) {
+            selectedRole = role;
+            document.getElementById('selected-role-text').innerText = role;
+            document.getElementById('job-role').value = role;
+            document.getElementById('role-dropdown-menu').classList.remove('open');
+            // Return recent reports to original position
+            const recentSection = document.querySelector('.recent-reports-section');
+            if (recentSection) {
+                recentSection.style.transition = 'margin-top 0.35s cubic-bezier(0.4, 0, 0.2, 1)';
+                recentSection.style.marginTop = '';
+            }
+            validateInputs();
+        }
+        function filterRoles() {
+            const q = document.getElementById('role-search').value.toUpperCase();
+            document.querySelectorAll('.role-option').forEach(o => o.style.display = o.innerText.toUpperCase().includes(q) ? "" : "none");
+        }
+
+        // 5. JD Upload
+        async function handleJDFileUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            document.getElementById('jd-file-name').innerText = file.name;
+            document.getElementById('jd-file-preview').classList.remove('hidden');
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (file.type.startsWith('image/')) {
+                    jdImageData = e.target.result;
+                    document.getElementById('job-desc').value = "[Image Attached] AI will scan for details.";
+                } else jdExtractedText = "[PDF Attached]";
+                validateInputs();
+            };
+            if (file.type.startsWith('image/')) reader.readAsDataURL(file);
+            else reader.readAsArrayBuffer(file);
+        }
+        function clearJDFile() {
+            jdImageData = null; jdExtractedText = "";
+            document.getElementById('jd-file-preview').classList.add('hidden');
+            document.getElementById('job-desc').value = "";
+            validateInputs();
+        }
+
+        // 6. Validation
+        function validateInputs() {
+            const btn = document.getElementById('analyze-btn');
+            const ready = (selectedAnalysisType === 'role' && selectedRole) || 
+                          (selectedAnalysisType === 'jd' && (document.getElementById('job-desc').value.length > 20 || jdImageData));
+            btn.classList.toggle('active', ready && extractedText.length > 50);
+            btn.disabled = !(ready && extractedText.length > 50);
+        }
+
+        // 7. Execution
         async function runAnalysis() {
             const role = document.getElementById('job-role').value;
-            const desc = document.getElementById('job-desc').value;
+            const desc = document.getElementById('job-desc').value.includes('[Image Attached]') ? "" : document.getElementById('job-desc').value;
 
-            if (!role) return showToast('Please enter a target job role', 'info');
-
-            document.getElementById('step-context').classList.add('hidden');
+            document.getElementById('main-wizard-card').classList.add('hidden');
             document.getElementById('loading-state').classList.remove('hidden');
 
             try {
-                const results = await api('/api/resume/ats-check', {
+                const res = await api('/api/resume/ats-check', {
                     method: 'POST',
                     body: JSON.stringify({ 
-                        resumeText: extractedText, 
-                        jobRole: role, 
-                        jobDescription: desc,
-                        resumeName: currentFileName
+                        resumeText: extractedText, jobRole: role, jobDescription: desc,
+                        resumeName: currentFileName, jdImage: jdImageData 
                     })
                 });
-
-                renderReport(results);
+                renderReport(res);
             } catch (e) {
-                showToast('Network error or server down', 'error');
-                document.getElementById('step-context').classList.remove('hidden');
-            } finally {
+                showToast('Analysis failed', 'error');
+                document.getElementById('main-wizard-card').classList.remove('hidden');
                 document.getElementById('loading-state').classList.add('hidden');
             }
         }
 
         function renderReport(data) {
+            document.getElementById('loading-state').classList.add('hidden');
             document.getElementById('step-report').classList.remove('hidden');
             
-            // Overall Score
-            document.getElementById('score-val').textContent = data.score;
+            document.getElementById('score-val').innerText = data.score;
             document.getElementById('score-ring').style.setProperty('--score', data.score);
-            document.getElementById('score-text').textContent = data.score > 80 ? 'Excellent' : (data.score > 60 ? 'Strong' : 'Needs Work');
-            document.getElementById('match-summary').textContent = data.match_summary;
+            document.getElementById('score-text').innerText = data.score > 80 ? 'Excellent' : (data.score > 60 ? 'Strong' : 'Needs Work');
+            document.getElementById('match-summary').innerText = data.match_summary;
 
-            // Categories
-            const catContainer = document.getElementById('category-results');
-            catContainer.innerHTML = '';
+            const container = document.getElementById('category-results');
+            container.innerHTML = '';
+            const icons = { brevity:'clock', impact:'zap', style:'palette', content:'file-text' };
             
-            const icons = { brevity: '⏱️', impact: '💥', style: '🎨', content: '📝' };
-            
-            Object.entries(data.categories).forEach(([key, val]) => {
+            Object.entries(data.categories).forEach(([k, v]) => {
                 const card = document.createElement('div');
                 card.className = 'category-card';
                 card.innerHTML = `
                     <div class="category-header">
-                        <div class="cat-title">${icons[key] || '•'} ${key.charAt(0).toUpperCase() + key.slice(1)}</div>
-                        <div style="font-weight: 800; color: ${val.score > 70 ? '#4ade80' : '#fbbf24'}">${val.score}</div>
+                        <div class="cat-title"><i data-lucide="${icons[k]||'circle'}"></i> ${k.toUpperCase()}</div>
+                        <div style="font-weight:800; color:var(--accent-blue)">${v.score}%</div>
                     </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 0%; background: ${val.score > 70 ? '#4ade80' : '#fbbf24'}"></div>
-                    </div>
-                    <ul class="feedback-list">
-                        ${val.feedback.map(f => `<li class="feedback-item">${f}</li>`).join('')}
-                    </ul>
+                    <div class="progress-bar"><div class="progress-fill" style="width:0%" id="fill-${k}"></div></div>
+                    <ul class="feedback-list">${v.feedback.map(f => `<li class="feedback-item">${f}</li>`).join('')}</ul>
                 `;
-                catContainer.appendChild(card);
-                // Trigger animation
-                setTimeout(() => card.querySelector('.progress-fill').style.width = val.score + '%', 100);
+                container.appendChild(card);
+                setTimeout(() => document.getElementById(`fill-${k}`).style.width = v.score + '%', 100);
             });
 
-            // Keywords
-            const tags = document.getElementById('missing-tags');
-            tags.innerHTML = data.missing_keywords.map(k => `<span class="tag-item">${k}</span>`).join('');
-
-            // Formatting
-            const format = document.getElementById('format-list');
-            format.innerHTML = data.formatting_issues.map(i => `<li class="feedback-item">${i}</li>`).join('');
+            document.getElementById('missing-tags').innerHTML = data.missing_keywords.map(k => `<span class="tag-item">${k}</span>`).join('');
+            lucide.createIcons();
         }
 
-        (async () => {
-            const user = await checkAuth('/sign-in');
-            buildNav(user);
-
-            // Check for saved report in URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const reportId = urlParams.get('reportId');
-            if (reportId) {
-                document.getElementById('step-upload').classList.add('hidden');
-                document.getElementById('loading-state').classList.remove('hidden');
-                try {
-                    const results = await api(`/api/resume/ats-report/${reportId}`);
-                    renderReport(results);
-                } catch (err) {
-                    showToast('Report not found', 'error');
-                    document.getElementById('step-upload').classList.remove('hidden');
-                } finally {
-                    document.getElementById('loading-state').classList.add('hidden');
+        async function loadRecentReports() {
+            try {
+                const res = await api('/api/resume/ats-history');
+                const container = document.getElementById('reports-list-container');
+                if (!res.reports || res.reports.length === 0) {
+                    container.innerHTML = '<p class="text-muted" style="text-align:center; padding: 2rem;">No recent reports found.</p>';
+                    return;
                 }
+                
+                container.innerHTML = res.reports.slice(0, 5).map(r => `
+                    <div class="report-mini-card">
+                        <div style="display: flex; align-items:center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: ${r.score > 80 ? '#f0fdf4' : '#fff7ed'}; color: ${r.score > 80 ? '#16a34a' : '#c2410c'}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; border: 1px solid currentColor;">
+                                ${r.score}
+                            </div>
+                            <div>
+                                <div style="font-weight: 700; font-size: 14px;">${r.resume_name}</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">${r.job_role} • ${new Date(r.created_at).toLocaleDateString()}</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-ghost btn-sm" onclick="fetchAndRenderReport('${r.id}')">View Details</button>
+                    </div>
+                `).join('');
+            } catch (e) { console.error('History fetch failed', e); }
+        }
+
+        async function fetchAndRenderReport(id) {
+            document.getElementById('main-wizard-card').classList.add('hidden');
+            document.getElementById('recent-reports-section').classList.add('hidden');
+            document.getElementById('loading-state').classList.remove('hidden');
+            try {
+                const res = await api(`/api/resume/ats-report/${id}`);
+                renderReport(res);
+            } catch (e) {
+                showToast('Failed to load report', 'error');
+                resetFlow();
             }
-        })();
+        }
+
+        function resetFlow() { location.reload(); }
+
+
     </script>
 </body>
 </html>

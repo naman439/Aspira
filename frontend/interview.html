@@ -7,6 +7,66 @@
     <title>AI Interview – Aspira</title>
     <link rel="stylesheet" href="/css/styles.css">
     <style>
+        body { color: white !important; }
+
+        .interview-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 1.5rem 4rem;
+        }
+
+        .page-header h1 {
+            font-size: 36px !important;
+            color: white !important;
+            -webkit-text-fill-color: unset !important;
+        }
+
+        .page-header p {
+            color: rgba(255,255,255,0.65) !important;
+        }
+
+        /* Glass Interview Setup Card Overrides (Maintaining specific padding/margin) */
+        .interview-card {
+            padding: 2.5rem !important;
+            margin-top: 1.5rem;
+        }
+
+        .interview-card h3, .interview-card h4 {
+            color: white !important;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Glass Form Labels */
+        .form-group label {
+            color: rgba(255,255,255,0.75) !important;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        /* Interview-phase status bar */
+        .interview-status {
+            background: var(--bg-glass-heavy) !important;
+            border: var(--glass-border) !important;
+            box-shadow: var(--glass-inner-light), var(--glass-shadow) !important;
+            border-radius: 99px !important;
+        }
+
+        .transcript-area {
+            background: var(--bg-glass-light) !important;
+            border: var(--glass-border) !important;
+            box-shadow: var(--glass-inner-light) !important;
+            border-radius: var(--radius-lg) !important;
+            color: rgba(255,255,255,0.9) !important;
+        }
+
+        .avatar-label {
+            color: rgba(255,255,255,0.7) !important;
+        }
+
+        #status-text {
+            color: rgba(255,255,255,0.8);
+        }
+
         .interview-status {
             display: inline-flex;
             align-items: center;
@@ -31,30 +91,111 @@
         }
 
         @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1
-            }
-
-            50% {
-                opacity: 0.5
-            }
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); transform: scale(1); }
+            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); transform: scale(1.1); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); transform: scale(1); }
         }
+
+        /* Fix autofill white background */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus {
+            -webkit-box-shadow: 0 0 0 50px rgba(15, 23, 42, 0.95) inset !important;
+            -webkit-text-fill-color: white !important;
+            caret-color: white;
+        }
+
+        /* Tech chip styles */
+        .tech-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: var(--glass-border);
+            background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.7);
+            transition: all 0.18s;
+            user-select: none;
+            box-shadow: var(--glass-inner-light);
+        }
+
+        .tech-chip:hover {
+            border-color: rgba(59,130,246,0.6);
+            background: rgba(59,130,246,0.1);
+            color: white;
+            box-shadow: var(--glass-inner-light), 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .tech-chip.selected {
+            background: rgba(59,130,246,0.25);
+            border-color: rgba(59,130,246,0.8);
+            color: white;
+            box-shadow: var(--glass-inner-light), inset 0 0 8px rgba(59,130,246,0.2);
+        }
+
+        .tech-chip.selected::before {
+            content: '✓ ';
+            font-weight: 800;
+            color: #60a5fa;
+        }
+        .custom-select-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 13px 18px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1.5px solid rgba(255, 255, 255, 0.18);
+            border-radius: 14px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .custom-select-btn.has-value { color: white; }
+        .custom-select-btn:hover {
+            border-color: rgba(255, 255, 255, 0.35);
+            background: rgba(255, 255, 255, 0.10);
+        }
+        .custom-select-btn.open {
+            border-color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.08);
+        }
+        .custom-select-btn .chevron {
+            font-size: 10px;
+            opacity: 0.6;
+            transition: transform 0.3s;
+        }
+        .custom-select-btn.open .chevron { transform: rotate(180deg); }
     </style>
 </head>
 
 <body>
-    <div class="bg-pattern"></div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <div class="video-bg-container">
+        <video autoplay muted loop playsinline class="video-bg">
+            <source src="https://videos.pexels.com/video-files/18069232/18069232-hd_1920_1080_24fps.mp4" type="video/mp4">
+        </video>
+        <div class="video-overlay"></div>
+    </div>
     <nav class="navbar">
         <div class="navbar-brand">
             <div style="width:32px;height:32px" id="nav-logo"></div>
             Aspira
         </div>
         <div class="navbar-actions">
-            <a href="/dashboard" class="btn btn-ghost btn-sm">← Dashboard</a>
+            <a href="/dashboard" class="btn btn-ghost btn-sm">Dashboard</a>
             <span class="nav-user-name" id="nav-name"></span>
             <div class="nav-avatar" id="nav-avatar"></div>
+            <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign Out</button>
         </div>
     </nav>
 
@@ -63,44 +204,105 @@
             <!-- Setup phase -->
             <div id="setup-phase">
                 <div class="page-header" style="text-align:left;padding-top:2rem;">
-                    <h1>AI Mock Interview</h1>
+                    <h1 class="gradient-text" style="font-size: 40px !important;">AI Mock Interview</h1>
                     <p>Configure your interview session and practice with our AI voice interviewer</p>
                 </div>
 
-                <div class="interview-card">
-                    <h3 class="mb-6">Interview Setup</h3>
-                    <div class="grid-2" style="gap:1.5rem;">
+                <div class="interview-card card-hover-glow" style="overflow: visible;">
+                    <h3 class="mb-6"><i data-lucide="settings-2" style="width: 20px; vertical-align: middle; margin-right: 8px;"></i> Interview Setup</h3>
+
+                    <!-- Row 1: Job Role + Experience Level -->
+                    <div class="grid-2" style="gap:1.5rem; margin-bottom: 1.5rem;">
+                        <!-- Job Role -->
                         <div class="form-group">
-                            <label for="job-role">Job Role *</label>
-                            <input type="text" id="job-role" placeholder="e.g. Frontend Developer, Data Scientist"
-                                required>
+                            <label><i data-lucide="briefcase" style="width: 14px; margin-right: 4px;"></i> Job Role *</label>
+                            <div class="custom-select-wrapper" id="job-role-wrapper">
+                                <input type="hidden" id="job-role" name="job-role" value="">
+                                <button type="button" class="custom-select-btn" id="job-role-btn" onclick="toggleDropdown('job-role')">
+                                    <span id="job-role-display">Select a role...</span>
+                                    <span class="chevron">▼</span>
+                                </button>
+                                <div class="custom-select-list" id="job-role-list">
+                                    <div class="custom-select-item" onclick="selectOptionCustom('job-role', 'Software Engineer', 'Software Engineer')">Software Engineer</div>
+                                    <div class="custom-select-item" onclick="selectOptionCustom('job-role', 'Frontend Developer', 'Frontend Developer')">Frontend Developer</div>
+                                    <div class="custom-select-item" onclick="selectOptionCustom('job-role', 'Backend Developer', 'Backend Developer')">Backend Developer</div>
+                                    <div class="custom-select-item" onclick="selectOptionCustom('job-role', 'Full Stack Developer', 'Full Stack Developer')">Full Stack Developer</div>
+                                    <div class="custom-select-item" onclick="selectOptionCustom('job-role', 'Mobile App Developer', 'Mobile App Developer')">Mobile App Developer</div>
+                                    <div class="custom-select-item" onclick="selectOptionCustom('job-role', 'Data Scientist', 'Data Scientist')">Data Scientist</div>
+                                    <div class="custom-select-item" onclick="selectOptionCustom('job-role', 'DevOps Engineer', 'DevOps Engineer')">DevOps Engineer</div>
+                                    <div class="custom-select-item" onclick="selectOptionCustom('job-role', 'UI/UX Designer', 'UI/UX Designer')">UI/UX Designer</div>
+                                    <div class="custom-select-item" onclick="selectOptionCustom('job-role', 'Product Manager', 'Product Manager')">Product Manager</div>
+                                    <div class="custom-select-item" onclick="selectOptionCustom('job-role', 'QA / Test Engineer', 'QA / Test Engineer')">QA / Test Engineer</div>
+                                    <div class="custom-select-item" onclick="selectOptionCustom('job-role', 'System Architect', 'System Architect')">System Architect</div>
+                                    <div class="custom-select-item" onclick="selectOptionCustom('job-role', 'Other', 'Other / Custom Title')">Other / Custom Title</div>
+                                </div>
+                            </div>
                         </div>
+
+                        <!-- Experience Level -->
                         <div class="form-group">
-                            <label for="level">Experience Level</label>
-                            <select id="level">
-                                <option value="junior">Junior (0–2 years)</option>
-                                <option value="mid" selected>Mid-level (2–5 years)</option>
-                                <option value="senior">Senior (5+ years)</option>
-                                <option value="lead">Lead / Principal</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="interview-type">Interview Type</label>
-                            <select id="interview-type">
-                                <option value="voice">AI Voice</option>
-                                <option value="browser-voice" selected>Unlimited Free Voice (Browser)</option>
-                                <option value="technical">Technical Only</option>
-                                <option value="behavioral">Behavioral Only</option>
-                                <option value="mixed">Mixed</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="tech-stack">Tech Stack (optional)</label>
-                            <input type="text" id="tech-stack" placeholder="e.g. React, Node.js, Python">
+                            <label><i data-lucide="bar-chart" style="width: 14px; margin-right: 4px;"></i> Experience Level</label>
+                            <div class="custom-select-wrapper" id="level-wrapper">
+                                <input type="hidden" id="level" value="mid">
+                                <button type="button" class="custom-select-btn has-value" id="level-btn" onclick="toggleDropdown('level')">
+                                    <span id="level-display">Mid-level (2–5 years)</span>
+                                    <span class="chevron">▼</span>
+                                </button>
+                                <div class="custom-select-list" id="level-list">
+                                    <div class="custom-select-item" onclick="selectOptionCustom('level', 'fresher', 'Fresher (0 years)')">Fresher (0 years)</div>
+                                    <div class="custom-select-item" onclick="selectOptionCustom('level', 'junior', 'Junior (0–2 years)')">Junior (0–2 years)</div>
+                                    <div class="custom-select-item selected" onclick="selectOptionCustom('level', 'mid', 'Mid-level (2–5 years)')">Mid-level (2–5 years)</div>
+                                    <div class="custom-select-item" onclick="selectOptionCustom('level', 'senior', 'Senior (5+ years)')">Senior (5+ years)</div>
+                                    <div class="custom-select-item" onclick="selectOptionCustom('level', 'lead', 'Lead / Principal')">Lead / Principal</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <button class="btn btn-primary btn-lg mt-6 w-full" id="start-btn">
-                        🎙️ Start Interview
+
+                    <!-- Row 2: Interview Type + Tech Stack -->
+                    <div class="grid-2" style="gap:1.5rem;">
+                        <!-- Interview Type -->
+                        <div class="form-group">
+                            <label><i data-lucide="mic" style="width: 14px; margin-right: 4px;"></i> Interview Type</label>
+                            <div class="custom-select-wrapper" id="interview-type-wrapper">
+                                <input type="hidden" id="interview-type" value="browser-voice">
+                                <button type="button" class="custom-select-btn has-value" id="interview-type-btn" onclick="toggleDropdown('interview-type')">
+                                    <span id="interview-type-display">Unlimited Free Voice (Browser)</span>
+                                    <span class="chevron">▼</span>
+                                </button>
+                                <div class="custom-select-list" id="interview-type-list">
+                                    <div class="custom-select-item" onclick="selectOptionCustom('interview-type', 'voice', 'AI Voice')">AI Voice</div>
+                                    <div class="custom-select-item selected" onclick="selectOptionCustom('interview-type', 'browser-voice', 'Unlimited Free Voice (Browser)')">Unlimited Free Voice (Browser)</div>
+                                    <div class="custom-select-item" onclick="selectOptionCustom('interview-type', 'technical', 'Technical Only')">Technical Only</div>
+                                    <div class="custom-select-item" onclick="selectOptionCustom('interview-type', 'behavioral', 'Behavioral Only')">Behavioral Only</div>
+                                    <div class="custom-select-item" onclick="selectOptionCustom('interview-type', 'mixed', 'Mixed')">Mixed</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tech Stack -->
+                        <div class="form-group" style="position: relative;">
+                            <label for="tech-stack-display"><i data-lucide="code-2" style="width: 14px; margin-right: 4px;"></i> Tech Stack (optional)</label>
+                            <input type="hidden" id="tech-stack">
+                            <div id="tech-chips-container" style="
+                                background: rgba(255,255,255,0.07);
+                                border: 1.5px solid rgba(255,255,255,0.2);
+                                border-radius: 14px;
+                                padding: 10px 12px;
+                                min-height: 48px;
+                                display: flex;
+                                flex-wrap: wrap;
+                                gap: 6px;
+                                cursor: text;
+                                transition: border-color 0.2s, box-shadow 0.2s;
+                            ">
+                                <span style="color: rgba(255,255,255,0.4); font-size: 13px; align-self: center;" id="tech-placeholder">Select a job role first...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-lg mt-6 w-full" id="start-btn" style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        <i data-lucide="mic-2" style="width: 20px;"></i> Start Interview
                     </button>
                 </div>
             </div>
@@ -157,10 +359,13 @@
                     </p>
                 </div>
 
-                <!-- Questions preview -->
-                <div class="interview-card mt-4" id="questions-card">
-                    <h4 class="mb-4">Interview Questions</h4>
-                    <div id="questions-list" style="display:flex;flex-direction:column;gap:0.75rem;"></div>
+                <!-- Questions preview (collapsed by default) -->
+                <div class="interview-card mt-4 hidden" id="questions-card">
+                    <div onclick="toggleQuestions()" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none;">
+                        <h4 style="margin:0;">Interview Questions</h4>
+                        <span id="q-toggle-icon" style="font-size:12px; color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.08); padding:4px 10px; border-radius:20px;">Show ▼</span>
+                    </div>
+                    <div id="questions-list" style="display:none; flex-direction:column; gap:0.75rem; margin-top:1rem;"></div>
                 </div>
             </div>
         </div>
@@ -186,7 +391,62 @@
                 document.getElementById('nav-avatar').textContent = user.name.charAt(0).toUpperCase();
                 document.getElementById('user-avatar-div').textContent = user.name.charAt(0).toUpperCase();
             }
+            buildFooter();
+            initIcons();
         })();
+
+        // ==========================================
+        // ROLE-BASED TECH STACK CHIP SELECTOR
+        // ==========================================
+        const ROLE_TECH_MAP = {
+            'Software Engineer':       ['JavaScript', 'Python', 'Java', 'C++', 'TypeScript', 'Git', 'Docker', 'SQL', 'REST API', 'Algorithms'],
+            'Frontend Developer':      ['React', 'Vue.js', 'Angular', 'TypeScript', 'CSS3', 'HTML5', 'Tailwind', 'Webpack', 'Next.js', 'Figma'],
+            'Backend Developer':       ['Node.js', 'Python', 'Java', 'Go', 'PostgreSQL', 'MongoDB', 'Redis', 'Docker', 'REST API', 'GraphQL'],
+            'Full Stack Developer':    ['React', 'Node.js', 'TypeScript', 'PostgreSQL', 'MongoDB', 'Docker', 'Next.js', 'REST API', 'Git', 'AWS'],
+            'Mobile App Developer':    ['React Native', 'Flutter', 'Swift', 'Kotlin', 'Firebase', 'Xcode', 'Android Studio', 'REST API', 'Git'],
+            'Data Scientist':          ['Python', 'R', 'TensorFlow', 'PyTorch', 'Pandas', 'NumPy', 'SQL', 'Jupyter', 'Scikit-learn', 'Matplotlib'],
+            'DevOps Engineer':         ['Docker', 'Kubernetes', 'AWS', 'Terraform', 'CI/CD', 'Linux', 'Ansible', 'Jenkins', 'Prometheus', 'Git'],
+            'UI/UX Designer':          ['Figma', 'Adobe XD', 'Sketch', 'Prototyping', 'User Research', 'Design Systems', 'Accessibility', 'HTML/CSS'],
+            'Product Manager':         ['Jira', 'Roadmapping', 'Agile', 'Scrum', 'Analytics', 'Figma', 'SQL', 'A/B Testing', 'OKRs', 'Confluence'],
+            'QA / Test Engineer':      ['Selenium', 'Cypress', 'Jest', 'Postman', 'JUnit', 'Python', 'JIRA', 'API Testing', 'Load Testing'],
+            'System Architect':        ['AWS', 'Microservices', 'Kubernetes', 'Kafka', 'REST', 'gRPC', 'SQL', 'NoSQL', 'Redis', 'Design Patterns'],
+            'Other':                   ['Python', 'JavaScript', 'SQL', 'Git', 'Docker', 'REST API', 'Agile', 'Communication', 'Problem Solving']
+        };
+
+        let selectedTechs = new Set();
+
+        function populateTechChips(role) {
+            const container = document.getElementById('tech-chips-container');
+            const placeholder = document.getElementById('tech-placeholder');
+            const techs = ROLE_TECH_MAP[role] || ROLE_TECH_MAP['Other'];
+            selectedTechs.clear();
+            document.getElementById('tech-stack').value = '';
+
+            if (placeholder) placeholder.remove();
+
+            container.innerHTML = '';
+            techs.forEach(tech => {
+                const chip = document.createElement('span');
+                chip.className = 'tech-chip';
+                chip.textContent = tech;
+                chip.dataset.tech = tech;
+                chip.addEventListener('click', () => {
+                    if (selectedTechs.has(tech)) {
+                        selectedTechs.delete(tech);
+                        chip.classList.remove('selected');
+                    } else {
+                        selectedTechs.add(tech);
+                        chip.classList.add('selected');
+                    }
+                    document.getElementById('tech-stack').value = [...selectedTechs].join(', ');
+                });
+                container.appendChild(chip);
+            });
+        }
+
+        document.getElementById('job-role').addEventListener('change', (e) => {
+            populateTechChips(e.target.value);
+        });
 
         document.getElementById('start-btn').addEventListener('click', async () => {
             const role = document.getElementById('job-role').value.trim();
@@ -212,6 +472,7 @@
                 // Show interview phase
                 document.getElementById('setup-phase').classList.add('hidden');
                 document.getElementById('interview-phase').classList.remove('hidden');
+                document.getElementById('questions-card').classList.remove('hidden');
                 document.getElementById('interview-role-title').textContent = role + ' Interview';
                 document.getElementById('interview-subtitle').textContent = selectedMode === 'browser-voice' ? 'Using Browser Voice (Unlimited Free)' : 'AI Voice Interviewer is ready';
 
@@ -375,6 +636,58 @@
         function getNextQuestion() {
             if (!window._vapiQuestions || currentQIndex >= window._vapiQuestions.length) return null;
             return window._vapiQuestions[currentQIndex++].question;
+        }
+
+        // ── Custom Dropdown Logic ──
+        function toggleDropdown(id) {
+            const list = document.getElementById(`${id}-list`);
+            const btn = document.getElementById(`${id}-btn`);
+            const isOpen = list.classList.contains('open');
+
+            // Close all others
+            document.querySelectorAll('.custom-select-list').forEach(l => l.classList.remove('open'));
+            document.querySelectorAll('.custom-select-btn').forEach(b => b.classList.remove('open'));
+
+            if (!isOpen) {
+                list.classList.add('open');
+                btn.classList.add('open');
+            }
+        }
+
+        function selectOptionCustom(id, value, display) {
+            const input = document.getElementById(id);
+            input.value = value;
+            document.getElementById(`${id}-display`).textContent = display;
+            document.getElementById(`${id}-btn`).classList.add('has-value');
+
+            // Update selection state
+            const list = document.getElementById(`${id}-list`);
+            list.querySelectorAll('.custom-select-item').forEach(item => {
+                item.classList.toggle('selected', item.getAttribute('onclick').includes(`'${value}'`));
+            });
+
+            toggleDropdown(id); // Close
+
+            // Special logic for job role change (updates tech chips)
+            if (id === 'job-role') {
+                populateTechChips(value);
+            }
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.custom-select-wrapper')) {
+                document.querySelectorAll('.custom-select-list').forEach(l => l.classList.remove('open'));
+                document.querySelectorAll('.custom-select-btn').forEach(b => b.classList.remove('open'));
+            }
+        });
+
+        function toggleQuestions() {
+            const list = document.getElementById('questions-list');
+            const icon = document.getElementById('q-toggle-icon');
+            const isHidden = list.style.display === 'none';
+            list.style.display = isHidden ? 'flex' : 'none';
+            icon.textContent = isHidden ? 'Hide ▲' : 'Show ▼';
         }
 
         async function endInterview() {

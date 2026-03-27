@@ -125,8 +125,31 @@ function initDb() {
 
   console.log('✅ Database initialized');
 
-  // Safe migration: add provider_id column if it doesn't exist yet
+  // Safe migration: add new profile fields if they don't exist
+  try { db.exec("ALTER TABLE users ADD COLUMN bio TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN skills TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN github_url TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN linkedin_url TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN portfolio_url TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN phone TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN location TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN current_title TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN full_name TEXT"); } catch (e) {}
+  try { db.exec("UPDATE users SET full_name = name WHERE full_name IS NULL"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN avatar_url TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN naukri_url TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN internshala_url TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN glassdoor_url TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN wellfound_url TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN indeed_url TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN google_url TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN otta_url TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE users ADD COLUMN ziprecruiter_url TEXT"); } catch (e) {}
+
   try { db.exec("ALTER TABLE resumes ADD COLUMN theme TEXT DEFAULT 'classic-black'"); } catch (e) {}
+
+  try { db.exec("ALTER TABLE applications ADD COLUMN job_type TEXT DEFAULT 'full-time'"); } catch (e) {}
+  try { db.exec("ALTER TABLE applications ADD COLUMN work_mode TEXT DEFAULT 'remote'"); } catch (e) {}
 }
 
 module.exports = { getDb, initDb };

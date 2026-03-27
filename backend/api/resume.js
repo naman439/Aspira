@@ -105,20 +105,52 @@ router.post('/ai-suggest', requireAuth, async (req, res) => {
 // POST /api/resume/ats-check - Perform ATS score analysis
 router.post('/ats-check', requireAuth, async (req, res) => {
     try {
-        const { resumeText, jobRole, jobDescription, resumeName } = req.body;
+        let { resumeText, jobRole, jobDescription, resumeName, jdImage } = req.body;
         if (!resumeText) return res.status(400).json({ error: 'Resume content is required' });
+
+        // If no role provided, we rely on JD
+        if (!jobRole && !jobDescription && !jdImage) {
+            return res.status(400).json({ error: 'Please provide either a Target Role or a Job Description' });
+        }
+
+        // If an image is provided for JD, use Groq Vision to extract text
+        if (jdImage && !jobDescription) {
+            console.log('--- Starting JD Vision OCR ---');
+            try {
+                const visionResponse = await groq.chat.completions.create({
+                    messages: [
+                        {
+                            role: 'user',
+                            content: [
+                                { type: 'text', text: 'Extract the full job description text from this image. Be comprehensive. If you see a job title, include it at the top. Return ONLY the extracted text.' },
+                                { type: 'image_url', image_url: { url: jdImage } }
+                            ]
+                        }
+                    ],
+                    model: 'llama-3.2-11b-vision-preview',
+                });
+                jobDescription = visionResponse.choices[0].message.content.trim();
+                console.log('JD Vision Extracted successfully, length:', jobDescription.length);
+            } catch (visionErr) {
+                console.error('CRITICAL: JD Vision Error:', visionErr.message);
+                if (visionErr.response) console.error('API Response:', visionErr.response.data);
+            }
+        }
 
         const prompt = `You are an expert Applicant Tracking System (ATS) and Senior Technical Recruiter.
 Analyze the following resume against the provided Job Role and Job Description.
 
-Target Job Role: ${jobRole || 'Professional Role'}
+Target Job Role (User-provided): ${jobRole || 'Not specified (Auto-detect from JD)'}
 Job Description: ${jobDescription || 'Standard industry requirements'}
 
 Resume Content:
 ${resumeText}
 
-Provide a detailed ATS compatibility report in JSON format with the following structure:
+Instruction: 
+1. If "Target Job Role" is not specified, analyze the Job Description to identify the most likely role.
+2. Provide a detailed ATS compatibility report in JSON format:
 {
+  "detected_role": "string (the role identified from JD if user input was empty)",
   "score": number (0-100),
   "match_summary": "string briefing highlights",
   "categories": {
@@ -130,7 +162,7 @@ Provide a detailed ATS compatibility report in JSON format with the following st
   "missing_keywords": ["list of key technical or soft skills missing"],
   "formatting_issues": ["any issues with fonts, dates, or contact info"]
 }
-Return ONLY the JSON. No markdown backticks.`;
+Return ONLY the JSON object.`;
 
         const completion = await groq.chat.completions.create({
             messages: [{ role: 'user', content: prompt }],
@@ -140,6 +172,9 @@ Return ONLY the JSON. No markdown backticks.`;
 
         const responseText = completion.choices[0].message.content.trim();
         const analysis = JSON.parse(responseText);
+        
+        // Add extracted JD to analysis if it was from vision, for user reference
+        if (jdImage) analysis.extractedJobDescription = jobDescription;
         
         // Save to database
         const db = getDb();

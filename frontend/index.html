@@ -8,17 +8,23 @@
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-  <div class="bg-pattern"></div>
+  <script src="https://unpkg.com/lucide@latest"></script>
+    <div class="video-bg-container">
+        <video autoplay muted loop playsinline class="video-bg">
+            <source src="https://videos.pexels.com/video-files/18069232/18069232-hd_1920_1080_24fps.mp4" type="video/mp4">
+        </video>
+        <div class="video-overlay"></div>
+    </div>
 
   <!-- Navbar -->
-  <nav class="navbar">
+  <nav class="navbar glass-panel" style="margin: 15px 25px; border-radius: 20px; padding: 0.75rem 2rem;">
     <div class="navbar-brand">
-      <div id="logo-container" style="width:32px;height:32px"></div>
-      Aspira
+      <div id="logo-container" style="width:36px;height:36px"></div>
+      <span style="font-weight: 800; font-size: 22px; letter-spacing: -0.5px;">Aspira</span>
     </div>
     <div class="navbar-actions">
       <div id="nav-guest">
-        <a href="/sign-in" class="btn btn-secondary btn-sm">Sign In</a>
+        <a href="/sign-in" class="btn btn-ghost btn-sm" style="color: white;">Sign In</a>
         <a href="/sign-up" class="btn btn-primary btn-sm">Get Started</a>
       </div>
       <div id="nav-user" class="hidden flex items-center gap-3">
@@ -32,55 +38,58 @@
 
   <!-- Hero -->
   <main class="main-content">
-    <section class="hero">
-      <div class="hero-logo" id="hero-logo"></div>
-      <h1 class="hero-title">Aspira</h1>
-      <p>Transform Your Interview Process with AI Intelligence</p>
-      <a href="/sign-up" class="btn btn-primary btn-lg" id="hero-cta">Get Started</a>
+    <section class="hero" style="min-height: 80vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2rem;">
+      <div class="glass-panel" style="padding: 4rem 3.5rem; text-align: center; max-width: 900px; border-radius: 48px;">
+          <div class="hero-logo" id="hero-logo" style="margin-bottom: 2rem; transform: scale(1.2);"></div>
+          <h1 class="hero-title gradient-text" style="font-size: clamp(3.2rem, 10vw, 5.5rem); line-height: 1; margin-bottom: 1.5rem; font-weight: 800;">Aspira</h1>
+          <p style="font-size: 1.3rem; color: #ffffff; max-width: 650px; margin: 0 auto 2.5rem; line-height: 1.5; font-weight: 500;">Elevate Your Interview Performance with the World's Most Advanced AI Career Intelligence.</p>
+          <div style="display: flex; gap: 1.25rem; justify-content: center; flex-wrap: wrap;">
+            <a href="/sign-up" class="btn btn-primary btn-lg" id="hero-cta" style="padding: 1rem 2.5rem; font-size: 1rem; border-radius: 99px;">Get Started Free</a>
+            <a href="#features" class="btn btn-secondary btn-lg" style="padding: 1rem 2.5rem; font-size: 1rem; border-radius: 99px; background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.2); color: white; backdrop-filter: blur(10px);">See How It Works</a>
+          </div>
+      </div>
     </section>
 
     <!-- Features -->
-    <section class="features-section">
+    <section id="features" class="features-section">
       <div class="container">
-        <h2>Powerful Features</h2>
+        <h2 class="gradient-text">Why Choose Aspira?</h2>
+        <p class="text-center text-muted mb-4" style="max-width: 600px; margin: -2rem auto 3rem;">Everything you need to land your dream job, powered by state-of-the-art AI.</p>
+        
         <div class="features-grid">
-          <div class="feature-card">
-            <span class="feature-icon">🤖</span>
-            <h3>Real-Time AI Voice Interviewer</h3>
-            <p>Experience realistic mock interviews powered by an AI voice agent that listens, responds, and adapts like a real interviewer.</p>
+          <div class="feature-card glass-card">
+            <span class="feature-icon"><i data-lucide="mic" style="color: var(--accent-blue)"></i></span>
+            <h3>AI Voice Mock Interviews</h3>
+            <p>Practice in real-time with an AI that mimics professional interviewers. Get instant feedback on your tone, content, and confidence.</p>
           </div>
-          <div class="feature-card">
-            <span class="feature-icon">📊</span>
-            <h3>Performance Analytics Dashboard</h3>
-            <p>Track interview scores, assessment results, and skill progress over time with visual insights and personalized feedback.</p>
+          <div class="feature-card glass-card">
+            <span class="feature-icon"><i data-lucide="bar-chart-3" style="color: var(--accent-purple)"></i></span>
+            <h3>Granular Analytics</h3>
+            <p>Understand your performance across different skill verticals. Track your progress with detailed radar charts and trend analysis.</p>
           </div>
-          <div class="feature-card">
-            <span class="feature-icon">⚖️</span>
-            <h3>AI ATS Score Checker</h3>
-            <p>Analyze your existing resume against specific job descriptions. Get instant match scores, missing keyword detection, and AI-powered formatting tips.</p>
+          <div class="feature-card glass-card">
+            <span class="feature-icon"><i data-lucide="file-check" style="color: var(--accent-blue)"></i></span>
+            <h3>AI ATS Optimization</h3>
+            <p>Upload your resume and get immediate feedback on how it scores against job descriptions. Never get filtered out by a bot again.</p>
           </div>
-          <div class="feature-card">
-            <span class="feature-icon">🧠</span>
-            <h3>AI-Generated Technical Assessments</h3>
-            <p>Get role-based quizzes generated by AI based on your skills and industry, with detailed explanations and improvement tips.</p>
+          <div class="feature-card glass-card">
+            <span class="feature-icon"><i data-lucide="brain-circuit" style="color: var(--accent-purple)"></i></span>
+            <h3>Dynamic Technical Quizzes</h3>
+            <p>Role-specific assessments that adapt to your experience level. Master technical rounds with AI-curated practice sets.</p>
           </div>
-          <div class="feature-card">
-            <span class="feature-icon">🔐</span>
-            <h3>Secure Multi-Provider Login</h3>
-            <p>Sign in safely using Email, Google, or GitHub with secure authentication, session handling, and private data storage.</p>
+          <div class="feature-card glass-card">
+            <span class="feature-icon"><i data-lucide="shield-check" style="color: var(--accent-blue)"></i></span>
+            <h3>Enterprise-Grade Privacy</h3>
+            <p>Your data and recordings are yours alone. We use secure, multi-provider authentication to keep your career prep private.</p>
           </div>
-          <div class="feature-card">
-            <span class="feature-icon">⚙️</span>
-            <h3>Smart Data Architecture</h3>
-            <p>Built with a modern database system separating authentication and application data for scalability and security.</p>
+          <div class="feature-card glass-card">
+            <span class="feature-icon"><i data-lucide="rocket" style="color: var(--accent-purple)"></i></span>
+            <h3>Career-Accelerating Path</h3>
+            <p>From student to senior engineer, Aspira provides a structured path to help you master the art of the interview.</p>
           </div>
         </div>
       </div>
     </section>
-
-    <footer class="footer">
-      © 2025 Aspira by Naman Arya
-    </footer>
   </main>
 
   <script src="/js/shared.js"></script>
@@ -88,6 +97,9 @@
     // Inject logo
     document.getElementById('logo-container').innerHTML = LOGO_SVG;
     document.getElementById('hero-logo').innerHTML = LOGO_SVG;
+
+    // Build Footer
+    buildFooter();
 
     // Check if already logged in
     (async () => {
@@ -97,6 +109,7 @@
         document.getElementById('hero-cta').href = '/dashboard';
         document.getElementById('hero-cta').textContent = 'Go to Dashboard';
       }
+      initIcons();
     })();
 
     // Animate feature cards on scroll

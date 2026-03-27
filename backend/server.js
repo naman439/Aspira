@@ -19,19 +19,22 @@ app.use(cors({
   },
   credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.set('trust proxy', 1);
+
+const isProd = process.env.NODE_ENV === 'production';
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'aspira-secret-key-2025',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: true, // Required for sameSite: 'none'
-    sameSite: 'none', // Required for cross-domain cookies (Vercel -> Render)
+    secure: isProd, // Only true in production (HTTPS)
+    sameSite: isProd ? 'none' : 'lax', // 'none' for cross-domain prod, 'lax' for local
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   }
 }));

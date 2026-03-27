@@ -17,25 +17,25 @@ router.get('/', requireAuth, (req, res) => {
 
 // POST /api/tracker - Create new application
 router.post('/', requireAuth, (req, res) => {
-    const { company, role, status, location, salary, notes } = req.body;
+    const { company, role, status, location, salary, notes, job_type, work_mode } = req.body;
     const id = uuidv4();
     const db = getDb();
     db.prepare(`
-        INSERT INTO applications (id, user_id, company, role, status, location, salary, notes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(id, req.session.user.id, company, role, status || 'applied', location, salary, notes);
+        INSERT INTO applications (id, user_id, company, role, status, location, salary, notes, job_type, work_mode)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(id, req.session.user.id, company, role, status || 'applied', location, salary, notes, job_type || 'full-time', work_mode || 'remote');
     res.json({ success: true, id });
 });
 
 // PUT /api/tracker/:id - Update application
 router.put('/:id', requireAuth, (req, res) => {
-    const { company, role, status, location, salary, notes } = req.body;
+    const { company, role, status, location, salary, notes, job_type, work_mode } = req.body;
     const db = getDb();
     db.prepare(`
         UPDATE applications 
-        SET company=?, role=?, status=?, location=?, salary=?, notes=?, updated_at=datetime('now')
+        SET company=?, role=?, status=?, location=?, salary=?, notes=?, job_type=?, work_mode=?, updated_at=datetime('now')
         WHERE id=? AND user_id=?
-    `).run(company, role, status, location, salary, notes, req.params.id, req.session.user.id);
+    `).run(company, role, status, location, salary, notes, job_type, work_mode, req.params.id, req.session.user.id);
     res.json({ success: true });
 });
 

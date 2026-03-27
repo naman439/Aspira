@@ -14,100 +14,238 @@
             margin-bottom: 2rem;
         }
 
-        .app-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.25rem;
-            margin-bottom: 1rem;
-            transition: transform 0.2s;
+        /* ── Suggestions Section ── */
+        .suggestions-section {
+            padding: 1.5rem;
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px dashed rgba(59, 130, 246, 0.3);
+            border-radius: var(--radius-lg);
+            margin-bottom: 2.5rem;
+            min-height: 220px;
+            transition: all 0.3s ease;
             position: relative;
         }
 
-        .app-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent-blue);
+        .wizard-step { display: none; animation: slideIn 0.3s ease; }
+        .wizard-step.active { display: block; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .app-status {
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            padding: 4px 8px;
-            border-radius: 4px;
-            display: inline-block;
-            margin-bottom: 0.5rem;
+        /* ── Custom Select ── */
+        .wiz-select-container {
+            position: relative;
+            margin-bottom: 1.5rem;
         }
 
-        .status-applied {
-            background: rgba(59, 130, 246, 0.1);
-            color: #60a5fa;
-        }
-
-        .status-interviewing {
-            background: rgba(245, 158, 11, 0.1);
-            color: #fbbf24;
-        }
-
-        .status-offered {
-            background: rgba(16, 185, 129, 0.1);
-            color: #34d399;
-        }
-
-        .status-rejected {
-            background: rgba(239, 68, 68, 0.1);
-            color: #f87171;
-        }
-
-        .app-actions {
-            position: absolute;
-            top: 1.25rem;
-            right: 1.25rem;
+        .wiz-select-trigger {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
             display: flex;
-            gap: 0.5rem;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            border: 2px dashed var(--border);
-            border-radius: 16px;
-            color: var(--text-muted);
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            backdrop-filter: blur(4px);
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
         }
+
+        .wiz-select-trigger:hover {
+            border-color: var(--accent-blue);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .wiz-dropdown {
+            position: relative; /* Changed from absolute to push content down */
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin-top: 8px;
+            max-height: 200px;
+            overflow: hidden;
+            z-index: 10;
+            display: none;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+        }
+
+        .wiz-dropdown.open { display: block; }
+
+        #wiz-options-list {
+            max-height: 140px; /* Limit to approx 3-4 items before scroll */
+            overflow-y: auto;
+            padding: 4px;
+        }
+
+        .wiz-option {
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            border-radius: 8px;
+            margin-bottom: 2px;
+        }
+
+        .wiz-option:hover {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .suggestion-filter-group {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 1rem;
+            background: rgba(255,255,255,0.03);
+            padding: 4px;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .filter-chip {
+            padding: 6px 14px;
+            background: transparent;
+            border: none;
+            border-radius: 20px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+            text-align: center;
+        }
+
+        .filter-chip.active {
+            background: var(--accent-blue);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .match-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #22c55e;
+            color: white;
+            font-size: 9px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+            z-index: 2;
+        }
+
+        .suggestion-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            margin-top: 1rem;
+        }
+
+        .suggestion-card {
+            background: var(--bg-glass-light);
+            border: var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            text-align: center;
+            transition: var(--transition);
+            text-decoration: none;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .suggestion-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+            border-color: var(--accent-blue);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .suggestion-card img {
+            width: 24px;
+            height: 24px;
+            filter: brightness(0) invert(1);
+            opacity: 0.8;
+        }
+
+        .app-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+            position: relative;
+            box-shadow: var(--glass-inner-light), 0 8px 32px rgba(0, 0, 0, 0.4);
+            color: white;
+        }
+
+        .app-card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(255, 255, 255, 0.45);
+            transform: translateY(-4px);
+            box-shadow: var(--glass-inner-light), 0 16px 48px rgba(0, 0, 0, 0.55);
+        }
+
+        .status-applied { background: rgba(59, 130, 246, 0.15); color: #60a5fa; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .status-interviewing { background: rgba(245, 158, 11, 0.15); color: #fbbf24; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .status-offered { background: rgba(34, 197, 94, 0.15); color: #4ade80; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .status-rejected { background: rgba(239, 68, 68, 0.15); color: #f87171; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
 
         .modal-content {
-            background: var(--bg-dark);
-            border: 1px solid var(--border);
-            border-radius: 16px;
+            background: var(--bg-card) !important;
+            backdrop-filter: var(--glass-blur) saturate(200%) !important;
+            -webkit-backdrop-filter: var(--glass-blur) saturate(200%) !important;
+            border: var(--glass-border) !important;
+            box-shadow: var(--glass-inner-light), 0 40px 100px rgba(0, 0, 0, 0.8) !important;
+            border-radius: var(--radius-xl);
             width: 100%;
             max-width: 500px;
-            padding: 2rem;
+            padding: 2.5rem;
+            color: white;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            border-radius: var(--radius-md) !important;
+            background: rgba(0,0,0,0.2) !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            color: white !important;
+            padding: 10px 14px !important;
         }
     </style>
 </head>
 
 <body>
-    <div class="bg-pattern"></div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    <div class="video-bg-container">
+        <video autoplay muted loop playsinline class="video-bg">
+            <source src="https://videos.pexels.com/video-files/18069232/18069232-hd_1920_1080_24fps.mp4"
+                type="video/mp4">
+        </video>
+        <div class="video-overlay"></div>
+    </div>
     <nav class="navbar">
         <div class="navbar-brand">
             <div style="width:32px;height:32px" id="nav-logo"></div>Aspira
         </div>
         <div class="navbar-actions">
-            <a href="/dashboard" class="btn btn-ghost btn-sm">← Dashboard</a>
+            <a href="/dashboard" class="btn btn-ghost btn-sm">Dashboard</a>
             <span class="nav-user-name" id="nav-name"></span>
             <div class="nav-avatar" id="nav-avatar"></div>
+            <button class="btn btn-ghost btn-sm" onclick="signOut()">Sign Out</button>
         </div>
     </nav>
 
@@ -115,16 +253,148 @@
         <div class="container" style="max-width: 800px;">
             <div class="tracker-header">
                 <div>
-                    <h1>Job Tracker</h1>
+                    <h1 class="gradient-text" style="font-size: 40px !important;">Job Tracker</h1>
                     <p>Manage your job applications and interview pipeline</p>
                 </div>
-                <button class="btn btn-primary" onclick="showModal()">+ Add Application</button>
+                <button class="btn btn-primary" onclick="showModal()"
+                    style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="plus" style="width: 18px;"></i> Add Application
+                </button>
+            </div>
+
+            <!-- Suggestions Wizard -->
+            <div class="suggestions-section" id="wizard-container">
+                <!-- Step 1: Role & Type -->
+                <div class="wizard-step active" id="step-1">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                        <h3 style="font-size: 1rem;"><i data-lucide="sparkles" style="width:16px; color:var(--accent-blue); vertical-align:middle; margin-right:6px;"></i> Job Suggestion Setup</h3>
+                        <span class="text-xs text-muted">Step 1 of 2</span>
+                    </div>
+                    
+                    <div class="wiz-select-container">
+                        <label style="margin-bottom: 0.5rem; font-size: 0.8rem; display: block; color: rgba(255,255,255,0.6);">Target Position</label>
+                        <div class="wiz-select-trigger" onclick="toggleWizDropdown()">
+                            <span id="selected-wiz-role">Select or type a role...</span>
+                            <i data-lucide="chevron-down" style="width:16px; opacity:0.5;"></i>
+                        </div>
+                        <div class="wiz-dropdown" id="wiz-role-dropdown">
+                            <div style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <input type="text" id="wiz-role-search" placeholder="Type to search..." 
+                                       style="width:100%; padding:8px 12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; font-size:12px;"
+                                       onkeyup="filterWizRoles(event)" onclick="event.stopPropagation()">
+                            </div>
+                            <div id="wiz-options-list">
+                                <!-- Tech -->
+                                <div style="font-size: 9px; opacity: 0.4; padding: 8px 16px 4px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Engineering & Data</div>
+                                <div class="wiz-option" onclick="selectWizRole('Software Engineer')">Software Engineer</div>
+                                <div class="wiz-option" onclick="selectWizRole('Frontend Developer')">Frontend Developer</div>
+                                <div class="wiz-option" onclick="selectWizRole('Backend Developer')">Backend Developer</div>
+                                <div class="wiz-option" onclick="selectWizRole('Full Stack Developer')">Full Stack Developer</div>
+                                <div class="wiz-option" onclick="selectWizRole('Mobile App Developer')">Mobile App Developer</div>
+                                <div class="wiz-option" onclick="selectWizRole('Data Scientist')">Data Scientist</div>
+                                <div class="wiz-option" onclick="selectWizRole('AI/ML Engineer')">AI/ML Engineer</div>
+                                <div class="wiz-option" onclick="selectWizRole('DevOps Engineer')">DevOps Engineer</div>
+                                <div class="wiz-option" onclick="selectWizRole('Cybersecurity Analyst')">Cybersecurity Analyst</div>
+                                
+                                <!-- Design & Product -->
+                                <div style="font-size: 9px; opacity: 0.4; padding: 12px 16px 4px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Creative & Product</div>
+                                <div class="wiz-option" onclick="selectWizRole('Product Manager')">Product Manager</div>
+                                <div class="wiz-option" onclick="selectWizRole('UI/UX Designer')">UI/UX Designer</div>
+                                <div class="wiz-option" onclick="selectWizRole('Graphic Designer')">Graphic Designer</div>
+                                <div class="wiz-option" onclick="selectWizRole('Product Designer')">Product Designer</div>
+                                
+                                <!-- Business & Marketing -->
+                                <div style="font-size: 9px; opacity: 0.4; padding: 12px 16px 4px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Business & Growth</div>
+                                <div class="wiz-option" onclick="selectWizRole('Marketing Manager')">Marketing Manager</div>
+                                <div class="wiz-option" onclick="selectWizRole('Sales Executive')">Sales Executive</div>
+                                <div class="wiz-option" onclick="selectWizRole('Business Analyst')">Business Analyst</div>
+                                <div class="wiz-option" onclick="selectWizRole('HR Operations')">HR Operations</div>
+                                <div class="wiz-option" onclick="selectWizRole('Finance Analyst')">Finance Analyst</div>
+                                <div class="wiz-option" onclick="selectWizRole('Social Media Specialist')">Social Media Specialist</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="wiz-role">
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="margin-bottom: 0.5rem; font-size: 0.8rem; display: block; color: rgba(255,255,255,0.6);">Experience Level</label>
+                        <div class="suggestion-filter-group">
+                            <button class="filter-chip wiz-exp" onclick="setWizExp('internship', this)">Internship</button>
+                            <button class="filter-chip wiz-exp" onclick="setWizExp('entry', this)">Graduate/Entry</button>
+                            <button class="filter-chip active wiz-exp" onclick="setWizExp('professional', this)">Experienced</button>
+                            <button class="filter-chip wiz-exp" onclick="setWizExp('senior', this)">Senior</button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end;">
+                        <button class="btn btn-primary btn-sm" onclick="goToStep(2)">Next <i data-lucide="arrow-right" style="width:14px; vertical-align:middle;"></i></button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Resume Matching -->
+                <div class="wizard-step" id="step-2">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                        <h3 style="font-size: 1rem;"><i data-lucide="file-text" style="width:16px; color:var(--accent-blue); vertical-align:middle; margin-right:6px;"></i> Resume Matching</h3>
+                        <span class="text-xs text-muted">Step 2 of 2</span>
+                    </div>
+
+                    <div class="wiz-select-container">
+                        <label style="margin-bottom: 0.5rem; font-size: 0.8rem; display: block; color: rgba(255,255,255,0.6);">Choose Saved Resume</label>
+                        <div class="wiz-select-trigger" onclick="toggleResumeDropdown()">
+                            <span id="selected-wiz-resume-label">Select a saved resume...</span>
+                            <i data-lucide="chevron-down" style="width:16px; opacity:0.5;"></i>
+                        </div>
+                        <div class="wiz-dropdown" id="wiz-resume-dropdown">
+                            <div style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <input type="text" id="wiz-resume-search" placeholder="Search resumes..." 
+                                       style="width:100%; padding:8px 12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:white; font-size:12px;"
+                                       onkeyup="filterWizResumes(event)" onclick="event.stopPropagation()">
+                            </div>
+                            <div id="wiz-resume-options-list">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                        <input type="hidden" id="wiz-resume">
+                    </div>
+
+                    <div style="text-align: center; margin-bottom: 1.5rem; position: relative;">
+                        <span style="background: var(--bg-primary); padding: 0 10px; font-size: 10px; color: rgba(255,255,255,0.3); position: relative; z-index: 1;">OR</span>
+                        <hr style="position: absolute; top: 50%; left: 0; right: 0; border: none; border-top: 1px solid rgba(255,255,255,0.05);">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <button type="button" class="btn btn-ghost" onclick="document.getElementById('wiz-file-input').click()" style="width: 100%; border: 1px dashed rgba(255,255,255,0.2); font-size: 13px;">
+                            <i data-lucide="upload" style="width:14px; margin-right:6px;"></i> <span id="upload-label">Upload New PDF Resume</span>
+                        </button>
+                        <input type="file" id="wiz-file-input" accept=".pdf" style="display:none" onchange="handleWizUpload(this)">
+                        <div id="save-uploaded-container" style="display: none; align-items: center; gap: 8px; margin-top: 8px; padding-left: 4px;">
+                            <input type="checkbox" id="save-to-profile" style="width:14px; height:14px; cursor:pointer;">
+                            <label for="save-to-profile" style="font-size: 11px; opacity: 0.7; cursor:pointer;">Save this resume to my profile</label>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <button class="btn btn-ghost btn-sm" onclick="goToStep(1)"><i data-lucide="arrow-left" style="width:14px; vertical-align:middle;"></i> Back</button>
+                        <button class="btn btn-primary btn-sm" onclick="finishWizard()">Find Best Matches</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Results -->
+                <div class="wizard-step" id="step-3">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <h3 style="font-size: 1rem;"><i data-lucide="check-circle" style="width:16px; color:#22c55e; vertical-align:middle; margin-right:6px;"></i> Highly Matched Jobs Found</h3>
+                        <button class="btn btn-ghost btn-sm" onclick="goToStep(1)" style="font-size: 10px; padding: 4px 8px;">Reset Filters</button>
+                    </div>
+                    <p class="text-xs text-muted" id="wiz-results-label" style="margin-bottom: 1rem;"></p>
+                    <div class="suggestion-grid" id="suggestion-grid">
+                        <!-- Results -->
+                    </div>
+                </div>
             </div>
 
             <div id="applications-list">
                 <!-- Data will be loaded here -->
                 <div class="empty-state">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">💼</div>
+                    <div style="margin-bottom: 1.5rem; color: var(--accent-blue);"><i data-lucide="briefcase"
+                            style="width: 64px; height: 64px;"></i></div>
                     <h3>No applications tracked yet</h3>
                     <p>Start tracking your job search by adding your first application.</p>
                 </div>
@@ -144,7 +414,21 @@
                 </div>
                 <div class="form-group">
                     <label>Role</label>
-                    <input type="text" id="role" required placeholder="e.g. Senior Frontend Engineer">
+                    <select id="role" required>
+                        <option value="" disabled selected>Select a role...</option>
+                        <option value="Software Engineer">Software Engineer</option>
+                        <option value="Frontend Developer">Frontend Developer</option>
+                        <option value="Backend Developer">Backend Developer</option>
+                        <option value="Full Stack Developer">Full Stack Developer</option>
+                        <option value="Mobile App Developer">Mobile App Developer</option>
+                        <option value="Data Scientist">Data Scientist</option>
+                        <option value="DevOps Engineer">DevOps Engineer</option>
+                        <option value="UI/UX Designer">UI/UX Designer</option>
+                        <option value="Product Manager">Product Manager</option>
+                        <option value="QA / Test Engineer">QA / Test Engineer</option>
+                        <option value="System Architect">System Architect</option>
+                        <option value="Other">Other / Custom Title</option>
+                    </select>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div class="form-group">
@@ -157,13 +441,40 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label>Job Type</label>
+                        <select id="job-type">
+                            <option value="full-time">Full-time</option>
+                            <option value="internship">Internship</option>
+                            <option value="contract">Contract</option>
+                            <option value="part-time">Part-time</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Work Mode</label>
+                        <select id="work-mode">
+                            <option value="remote">Remote</option>
+                            <option value="on-site">On-site</option>
+                            <option value="hybrid">Hybrid</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>Location</label>
-                        <input type="text" id="location" placeholder="e.g. Remote">
+                        <input type="text" id="location" placeholder="e.g. San Francisco">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Salary Range (Optional)</label>
-                    <input type="text" id="salary" placeholder="e.g. $120k - $150k">
+                    <label>Salary Range (Annual)</label>
+                    <select id="salary">
+                        <option value="">Not Specified</option>
+                        <option value="$0 - $50k">$0 - $50k</option>
+                        <option value="$50k - $80k">$50k - $80k</option>
+                        <option value="$80k - $120k">$80k - $120k</option>
+                        <option value="$120k - $160k">$120k - $160k</option>
+                        <option value="$160k - $200k">$160k - $200k</option>
+                        <option value="$200k+">$200k+</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Notes</label>
@@ -185,46 +496,327 @@
         (async () => {
             const user = await checkAuth('/sign-in');
             buildNav(user);
+            buildFooter();
             loadApplications();
+            initIcons();
         })();
+
+        let currentExpFilter = 'professional';
+        let userProfile = null;
+        let userResumes = [];
+        let wizUploadedText = "";
+        let wizUploadedFileName = "";
 
         async function loadApplications() {
             try {
+                // Load applications
                 const res = await api('/api/tracker');
                 applications = res.applications;
                 renderApplications();
+                
+                // Load user profile & resumes for wizard
+                const auth = await api('/api/auth/me');
+                userProfile = auth.user;
+                const initialRole = userProfile.industry || userProfile.currentTitle || 'Software Engineer';
+                selectWizRole(initialRole);
+                
+                const resumeRes = await api('/api/resume');
+                userResumes = resumeRes.resumes;
+                renderWizResumes();
             } catch (e) {
-                toast('Failed to load applications');
+                console.error(e);
             }
+        }
+
+        function renderWizResumes() {
+            const list = document.getElementById('wiz-resume-options-list');
+            if (userResumes.length === 0) {
+                list.innerHTML = '<div style="padding:10px; font-size:12px; opacity:0.5; text-align:center;">No resumes saved yet.</div>';
+                return;
+            }
+            list.innerHTML = userResumes.map(r => `
+                <div class="wiz-option" onclick="selectWizResume('${r.id}', '${r.title}')">
+                    <i data-lucide="file" style="width:12px; margin-right:6px; vertical-align:middle; opacity:0.5;"></i> ${r.title}
+                </div>
+            `).join('');
+            initIcons();
+        }
+
+        // ── Wizard Dropdowns ──
+        function toggleWizDropdown() {
+            const resDropdown = document.getElementById('wiz-resume-dropdown');
+            if (resDropdown) resDropdown.classList.remove('open');
+            const dropdown = document.getElementById('wiz-role-dropdown');
+            dropdown.classList.toggle('open');
+            if (dropdown.classList.contains('open')) {
+                document.getElementById('wiz-role-search').focus();
+            }
+        }
+
+        function toggleResumeDropdown() {
+            const roleDropdown = document.getElementById('wiz-role-dropdown');
+            if (roleDropdown) roleDropdown.classList.remove('open');
+            const dropdown = document.getElementById('wiz-resume-dropdown');
+            dropdown.classList.toggle('open');
+            if (dropdown.classList.contains('open')) {
+                document.getElementById('wiz-resume-search').focus();
+            }
+        }
+
+        function filterWizRoles(e) {
+            const q = e.target.value.toLowerCase();
+            const list = document.getElementById('wiz-options-list');
+            const options = list.querySelectorAll('.wiz-option');
+            options.forEach(opt => {
+                const isHeading = opt.getAttribute('style')?.includes('uppercase');
+                if (!isHeading) {
+                    opt.style.display = opt.textContent.toLowerCase().includes(q) ? 'block' : 'none';
+                }
+            });
+
+            if (e.key === 'Enter' && q) {
+                selectWizRole(e.target.value);
+            }
+        }
+
+        function filterWizResumes(e) {
+            const q = e.target.value.toLowerCase();
+            const list = document.getElementById('wiz-resume-options-list');
+            const options = list.querySelectorAll('.wiz-option');
+            options.forEach(opt => {
+                opt.style.display = opt.textContent.toLowerCase().includes(q) ? 'block' : 'none';
+            });
+        }
+
+        function selectWizRole(role) {
+            document.getElementById('wiz-role').value = role;
+            document.getElementById('selected-wiz-role').textContent = role;
+            document.getElementById('wiz-role-dropdown').classList.remove('open');
+        }
+
+        function selectWizResume(id, title) {
+            document.getElementById('wiz-resume').value = id;
+            document.getElementById('selected-wiz-resume-label').textContent = title;
+            document.getElementById('wiz-resume-dropdown').classList.remove('open');
+            clearFileUpload();
+            toast(`Using resume: ${title}`);
+        }
+
+        // Close dropdown on click away
+        window.addEventListener('click', (e) => {
+            if (!e.target.closest('.wiz-select-container')) {
+                document.querySelectorAll('.wiz-dropdown').forEach(d => d.classList.remove('open'));
+            }
+        });
+
+        async function handleWizUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            if (file.type !== 'application/pdf') return toast('Please upload a PDF', 'error');
+            
+            wizUploadedFileName = file.name;
+            document.getElementById('upload-label').textContent = `Uploaded: ${file.name}`;
+            document.getElementById('save-uploaded-container').style.display = 'flex';
+            
+            // Clear saved selection UI
+            document.getElementById('wiz-resume').value = ""; 
+            document.getElementById('selected-wiz-resume-label').textContent = "Select a saved resume...";
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const typedarray = new Uint8Array(e.target.result);
+                try {
+                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                    let text = "";
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const content = await page.getTextContent();
+                        text += content.items.map(s => s.str).join(" ") + "\n";
+                    }
+                    wizUploadedText = text;
+                    toast('Resume processed!');
+                } catch (err) { toast('PDF Parse Failed', 'error'); }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        async function saveResumeToProfile(title, content) {
+            try {
+                const res = await api('/api/resume', 'POST', { title: title || 'Uploaded Resume' });
+                if (res.id) {
+                    await api(`/api/resume/${res.id}`, 'PUT', { 
+                        title: title || 'Uploaded Resume',
+                        summary: content,
+                        personal_details: {},
+                        experiences: [],
+                        education: [],
+                        skills: []
+                    });
+                    return res.id;
+                }
+            } catch (e) { console.error('Save failed', e); }
+            return null;
+        }
+
+        const ROLE_KEYWORDS = {
+            'Software Engineer': ['javascript', 'python', 'java', 'git', 'agile', 'database', 'testing', 'algorithms'],
+            'Frontend Developer': ['react', 'css', 'html', 'typescript', 'tailwind', 'figma', 'responsive', 'ux'],
+            'Backend Developer': ['node', 'express', 'sql', 'mongodb', 'api', 'rest', 'docker', 'aws', 'redis'],
+            'Full Stack Developer': ['react', 'node', 'sql', 'typescript', 'css', 'api', 'deployment', 'fullstack'],
+            'Mobile App Developer': ['flutter', 'react native', 'swift', 'kotlin', 'ios', 'android', 'firebase'],
+            'Data Scientist': ['python', 'r', 'machine learning', 'sql', 'statistics', 'pandas', 'scikit', 'visualization'],
+            'AI/ML Engineer': ['pytorch', 'tensorflow', 'neural networks', 'nlp', 'computer vision', 'deep learning'],
+            'DevOps Engineer': ['kubernetes', 'docker', 'jenkins', 'ci/cd', 'terraform', 'aws', 'linux', 'azure'],
+            'Cybersecurity Analyst': ['firewall', 'pentesting', 'soc', 'siem', 'forensics', 'encryption', 'compliance'],
+            'Product Manager': ['roadmap', 'backlog', 'stakeholder', 'strategy', 'metrics', 'agile', 'scrum', 'user stories'],
+            'UI/UX Designer': ['figma', 'adobe xd', 'prototyping', 'wireframes', 'user research', 'accessibility', 'invision'],
+            'Graphic Designer': ['photoshop', 'illustrator', 'indesign', 'branding', 'typography', 'vector', 'creative'],
+            'Marketing Manager': ['seo', 'sem', 'content strategy', 'analytics', 'campaign', 'email marketing', 'brand'],
+            'Sales Executive': ['crm', 'lead generation', 'negotiation', 'prospecting', 'revenue', 'quota', 'pipeline'],
+            'Business Analyst': ['requirements', 'documentation', 'workflow', 'bi', 'tableau', 'excel', 'gap analysis'],
+            'HR Operations': ['recruitment', 'payroll', 'onboarding', 'compliance', 'benefits', 'employee relations'],
+            'Finance Analyst': ['modeling', 'forecasting', 'budgeting', 'sap', 'audit', 'compliance', 'financial reports']
+        };
+
+        function calculateMatchScore(text, role) {
+            if (!text) return 40; 
+            const keywords = ROLE_KEYWORDS[role] || ['professional', 'experience', 'skills', 'leadership'];
+            const lowerText = text.toLowerCase();
+            let matches = 0;
+            keywords.forEach(kw => {
+                if (lowerText.includes(kw.toLowerCase())) matches++;
+            });
+            const density = (matches / keywords.length) * 100;
+            return Math.min(99, Math.max(50, Math.round(density + (Math.random() * 6 - 3))));
+        }
+
+        function clearFileUpload() {
+            wizUploadedText = "";
+            wizUploadedFileName = "";
+            document.getElementById('upload-label').textContent = "Upload New PDF Resume";
+            document.getElementById('wiz-file-input').value = "";
+            document.getElementById('save-uploaded-container').style.display = 'none';
+        }
+
+        function goToStep(step) {
+            document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
+            document.getElementById(`step-${step}`).classList.add('active');
+            initIcons();
+        }
+
+        function setWizExp(filter, el) {
+            currentExpFilter = filter;
+            document.querySelectorAll('.wiz-exp').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        async function finishWizard() {
+            const role = document.getElementById('wiz-role').value || 'Software Engineer';
+            let resumeId = document.getElementById('wiz-resume').value;
+            const saveToProfile = document.getElementById('save-to-profile').checked;
+            
+            // Get content for matching
+            let matchText = wizUploadedText;
+            if (resumeId) {
+                try {
+                    const fullResume = await api(`/api/resume/${resumeId}`);
+                    matchText = (fullResume.resume.summary || "") + " " + JSON.stringify(fullResume.resume.skills || []);
+                } catch (e) { console.error('Resume fetch failed', e); }
+            }
+
+            // If user wants to save the uploaded one
+            if (!resumeId && wizUploadedText && saveToProfile) {
+                toast('Saving resume to profile...');
+                const newId = await saveResumeToProfile(`Uploaded: ${wizUploadedFileName}`, wizUploadedText);
+                if (newId) {
+                    resumeId = newId;
+                    const resumeRes = await api('/api/resume');
+                    userResumes = resumeRes.resumes;
+                    renderWizResumes();
+                }
+            }
+
+            const resumeName = resumeId ? userResumes.find(r => r.id === resumeId)?.title : (wizUploadedFileName || 'Profile');
+            const grid = document.getElementById('suggestion-grid');
+            const label = document.getElementById('wiz-results-label');
+            
+            let searchQuery = role;
+            if (currentExpFilter === 'internship') searchQuery += ' Internship';
+            else if (currentExpFilter === 'entry') searchQuery += ' Entry Level';
+            else if (currentExpFilter === 'senior') searchQuery += ' Senior';
+
+            const sourceInfo = resumeId ? `using "${resumeName}" resume` : (wizUploadedText ? `using uploaded "${resumeName}"` : 'using profile keywords');
+            label.textContent = `Targeting ${currentExpFilter} roles for "${role}" ${sourceInfo}.`;
+            
+            // ── Real Matching Logic ──
+            const baseMatch = calculateMatchScore(matchText || (userProfile?.skills + " " + userProfile?.industry), role);
+            
+            const allPlatforms = [
+                { name: 'LinkedIn', icon: 'linkedin', match: baseMatch + '% Match', score: baseMatch, url: `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(searchQuery)}` },
+                { name: 'Naukri.com', icon: 'external-link', match: Math.min(99, baseMatch + 2) + '% Match', score: baseMatch + 2, url: `https://www.naukri.com/${searchQuery.toLowerCase().replace(/\s+/g, '-')}-jobs` },
+                { name: 'Google Careers', icon: 'search', match: Math.max(40, baseMatch - 5) + '% Match', score: baseMatch - 5, url: `https://www.google.com/about/careers/applications/jobs/results/?q=${encodeURIComponent(searchQuery)}` },
+                { name: 'Microsoft', icon: 'shield', match: baseMatch > 80 ? 'High Match' : 'Matched', score: baseMatch, url: `https://careers.microsoft.com/us/en/search-results?keywords=${encodeURIComponent(searchQuery)}` },
+                { name: 'Amazon', icon: 'package', match: baseMatch > 75 ? 'Recommended' : 'Verified', score: baseMatch, url: `https://www.amazon.jobs/en/search?base_query=${encodeURIComponent(searchQuery)}` },
+                { name: 'Internshala', icon: 'graduation-cap', match: 'Matched', score: 70, url: `https://internshala.com/jobs/matching-${searchQuery.toLowerCase().replace(/\s+/g, '-')}-jobs` },
+                { name: 'Glassdoor', icon: 'briefcase', match: baseMatch + '% Match', score: baseMatch, url: `https://www.glassdoor.com/Job/jobs.htm?sc.keyword=${encodeURIComponent(searchQuery)}` },
+                { name: 'ZipRecruiter', icon: 'zap', match: 'Fast Apply', score: 65, url: `https://www.ziprecruiter.com/candidate/search?search=${encodeURIComponent(searchQuery)}` },
+                { name: 'Otta', icon: 'star', match: 'Top Match', score: 90, url: `https://otta.com/jobs?q=${encodeURIComponent(searchQuery)}` }
+            ];
+
+            // Sort by match score
+            const displayed = allPlatforms.sort((a, b) => b.score - a.score).slice(0, 8);
+
+            grid.innerHTML = displayed.map(p => `
+                <a href="${p.url}" target="_blank" class="suggestion-card" style="position:relative;">
+                    <div class="match-badge">${p.match}</div>
+                    <i data-lucide="${p.icon || 'external-link'}" style="width:20px; color:var(--accent-blue);"></i>
+                    <span style="font-size: 0.75rem; font-weight: 600;">${p.name}</span>
+                    <span style="font-size: 9px; opacity: 0.6;">Apply Now</span>
+                </a>
+            `).join('');
+            
+            goToStep(3);
         }
 
         function renderApplications() {
             const list = document.getElementById('applications-list');
             if (applications.length === 0) {
                 list.innerHTML = `<div class="empty-state">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">💼</div>
+                    <div style="margin-bottom: 1.5rem; color: var(--accent-blue);"><i data-lucide="briefcase" style="width: 64px; height: 64px;"></i></div>
                     <h3>No applications tracked yet</h3>
                     <p>Start tracking your job search by adding your first application.</p>
                 </div>`;
+                initIcons();
                 return;
             }
 
             list.innerHTML = '';
             applications.forEach(app => {
                 const card = document.createElement('div');
-                card.className = 'app-card';
+                card.className = 'app-card card-hover-glow';
                 card.innerHTML = `
-                    <span class="app-status status-${app.status}">${app.status}</span>
-                    <h3>${app.company}</h3>
-                    <p class="text-muted" style="font-size: 0.9rem;">${app.role} · ${app.location || 'N/A'}</p>
-                    ${app.salary ? `<p style="font-size: 0.85rem; margin-top: 0.25rem;"><span style="color:var(--accent-blue)">💰</span> ${app.salary}</p>` : ''}
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 0.5rem;">
+                        <span class="app-status status-${app.status}" style="margin:0">${app.status}</span>
+                        <div style="display:flex; gap:4px;">
+                            ${app.job_type ? `<span class="badge" style="font-size:10px; padding:2px 6px; background:rgba(255,255,255,0.05); border-radius:4px; text-transform:capitalize;">${app.job_type}</span>` : ''}
+                            ${app.work_mode ? `<span class="badge" style="font-size:10px; padding:2px 6px; background:rgba(59,130,246,0.1); color:var(--accent-blue); border-radius:4px; text-transform:capitalize;">${app.work_mode}</span>` : ''}
+                        </div>
+                    </div>
+                    <h3 style="display: flex; align-items: center; gap: 8px;">${app.company}</h3>
+                    <p class="text-muted" style="font-size: 0.9rem; margin-top: 4px;">
+                        <i data-lucide="layers" style="width: 14px; vertical-align: middle; margin-right: 4px;"></i> ${app.role} 
+                        <span style="margin: 0 8px; opacity: 0.3;">|</span>
+                        <i data-lucide="map-pin" style="width: 14px; vertical-align: middle; margin-right: 4px;"></i> ${app.location || 'N/A'}
+                    </p>
+                    ${app.salary ? `<p style="font-size: 0.85rem; margin-top: 0.5rem; color: #4ade80;"><i data-lucide="dollar-sign" style="width: 14px; vertical-align: middle; margin-right: 2px;"></i> ${app.salary}</p>` : ''}
                     <div class="app-actions">
-                        <button class="btn btn-ghost btn-sm" onclick="editApp('${app.id}')">Edit</button>
-                        <button class="btn btn-ghost btn-sm" style="color:var(--accent-red)" onclick="deleteApp('${app.id}')">Delete</button>
+                        <button class="btn btn-ghost btn-sm" onclick="editApp('${app.id}')"><i data-lucide="edit-3" style="width: 14px;"></i></button>
+                        <button class="btn btn-ghost btn-sm" style="color:var(--accent-red)" onclick="deleteApp('${app.id}')"><i data-lucide="trash-2" style="width: 14px;"></i></button>
                     </div>
                 `;
                 list.appendChild(card);
             });
+            initIcons();
         }
 
         async function handleForm(e) {
@@ -236,6 +828,8 @@
                 location: document.getElementById('location').value,
                 salary: document.getElementById('salary').value,
                 notes: document.getElementById('notes').value,
+                job_type: document.getElementById('job-type').value,
+                work_mode: document.getElementById('work-mode').value,
             };
             const id = document.getElementById('appId').value;
             try {
@@ -260,12 +854,14 @@
             document.getElementById('appId').value = id || '';
             if (id) {
                 const app = applications.find(a => a.id === id);
-                document.getElementById('company').value = app.company;
-                document.getElementById('role').value = app.role;
-                document.getElementById('status').value = app.status;
-                document.getElementById('location').value = app.location;
-                document.getElementById('salary').value = app.salary;
-                document.getElementById('notes').value = app.notes;
+                document.getElementById('company').value = app.company || '';
+                document.getElementById('role').value = app.role || '';
+                document.getElementById('status').value = app.status || 'applied';
+                document.getElementById('location').value = app.location || '';
+                document.getElementById('salary').value = app.salary || '';
+                document.getElementById('notes').value = app.notes || '';
+                document.getElementById('job-type').value = app.job_type || 'full-time';
+                document.getElementById('work-mode').value = app.work_mode || 'remote';
             } else {
                 document.getElementById('appForm').reset();
             }

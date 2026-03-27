@@ -201,8 +201,10 @@
                     <button class="tab-btn" onclick="switchTab(this,'education')">🎓 Education</button>
                     <button class="tab-btn" onclick="switchTab(this,'skills')">⚡ Skills</button>
                     <div style="margin-left: auto; display: flex; gap: 5px;">
-                        <button class="btn btn-secondary btn-sm" onclick="setBoilerplate('student')" title="Fill Student Template">🎓 Student</button>
-                        <button class="btn btn-secondary btn-sm" onclick="setBoilerplate('pro')" title="Fill Professional Template">💼 Pro</button>
+                        <button class="btn btn-secondary btn-sm" onclick="setBoilerplate('student')"
+                            title="Fill Student Template">🎓 Student</button>
+                        <button class="btn btn-secondary btn-sm" onclick="setBoilerplate('pro')"
+                            title="Fill Professional Template">💼 Pro</button>
                     </div>
                 </div>
 
@@ -390,7 +392,7 @@
 
             let html = '';
             const l = layout.toLowerCase();
-            
+
             // Layout specific structure
             if (l === 'modern') {
                 html = `<div class="sidebar">
@@ -414,7 +416,7 @@
                     <div id="preview-education-list"></div>
                 </div>`;
             } else if (l === 'creative') {
-                 html = `<div class="resume-header">
+                html = `<div class="resume-header">
                     ${name ? `<h1>${name}</h1>` : ''}
                     <div class="contact" style="opacity:0.9; font-size:0.9rem; margin-top:10px;">
                         ${[email, phone, location].filter(Boolean).join(' • ')}
@@ -604,7 +606,7 @@
 
         function setBoilerplate(type) {
             if (!confirm('This will overwrite current content. Continue?')) return;
-            
+
             if (type === 'student') {
                 document.getElementById('pd-summary').value = 'Motivated and detail-oriented Computer Science student with a strong foundation in software development and problem-solving. Proven ability to learn quickly and contribute to team projects.';
                 experiences = [
