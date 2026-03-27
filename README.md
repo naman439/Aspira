@@ -16,13 +16,15 @@
 
 ### 🧠 Skills & Knowledge Center
 - **Technical Quizzes**: Interactive MCQ tests covering various tech stacks (Frontend, Backend, UI/UX, etc.).
-- **Job Tracker**: A centralized kanban-style board to track all your applications from 'applied' to 'hired'.
+- **Job Tracker & Wizard**: A centralized dashboard to track applications with an AI-powered suggestion wizard (linking 10+ platforms like Otta, LinkedIn, and Naukri).
 - **Skill Distribution**: Visual analytics showing your profile strength and interview readiness.
 
-### 👤 Advanced Profile Management
-- **Avatar Customization**: Upload and manage profile pictures.
+### 👤 Advanced Profile Dashboard
+- **Comprehensive Connectivity**: Link 11+ professional platforms (LinkedIn, GitHub, Portfolio, Naukri, Internshala, Glassdoor, Wellfound, Indeed, Google Careers, Otta, and ZipRecruiter).
+- **Sectioned Management**: Professional layout for Personal Details, Industry & Experience, and Social Profiles.
+- **Career Activity Feed**: A dynamic timeline tracking your interview practice, ATS scans, and quiz performance.
 - **Completion Tracking**: A dynamic "Profile Strength" bar to help you build a complete professional identity.
-- **Social Integration**: Link your GitHub, LinkedIn, and Portfolio directly to your profile.
+- **Avatar Customization**: Securely upload and manage profile pictures via `multer`.
 
 ---
 
